@@ -1,8 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { format } from "date-fns";
-import { ExternalLink, Shield, ShieldOff, Clock, Globe, Settings, PlusCircle } from "lucide-react";
+import { ExternalLink, Shield, ShieldOff, Clock, Globe, Settings, PlusCircle, Trash2 } from "lucide-react";
 import Link from "next/link";
-import { toggleClientStatus } from "@/lib/actions";
+import { toggleClientStatus, deleteClient } from "@/lib/actions";
 
 export const dynamic = "force-dynamic";
 
@@ -102,6 +102,16 @@ export default async function DashboardPage() {
                 >
                   <Settings size={20} />
                 </Link>
+
+                <form action={deleteClient.bind(null, client.id)}>
+                  <button 
+                    type="submit"
+                    className="relative z-20 p-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-red-500 transition-all text-slate-500 hover:text-red-500"
+                    title="Delete Client"
+                  >
+                    <Trash2 size={20} />
+                  </button>
+                </form>
               </div>
             </div>
           </div>

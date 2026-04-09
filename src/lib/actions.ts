@@ -113,3 +113,18 @@ export async function toggleClientStatus(clientId: string, currentStatus: string
   revalidatePath("/dashboard");
   revalidatePath(`/dashboard/clients/${clientId}`);
 }
+
+export async function deleteClient(clientId: string) {
+  try {
+    await prisma.$transaction([
+      prisma.admin.deleteMany({ where: { clientId } }),
+      prisma.payment.deleteMany({ where: { clientId } }),
+      prisma.client.delete({ where: { id: clientId } }),
+    ]);
+  } catch (error) {
+    console.error("Delete Client Error:", error);
+    return;
+  }
+  revalidatePath("/dashboard");
+}
+
