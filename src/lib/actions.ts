@@ -5,11 +5,15 @@ import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { headers } from "next/headers";
+import { encodePayload, generateChecksum, PHONEPE_HOST, PHONEPE_MERCHANT_ID } from "./phonepe";
+import { signOut } from "@/auth";
 
 const ClientSchema = z.object({
   name: z.string().min(2),
   websiteUrl: z.string().url(),
   dbUrl: z.string().min(5),
+  phoneNumber: z.string().optional(),
   adminEmail: z.string().email(),
   adminPassword: z.string().min(6),
 });
@@ -19,6 +23,7 @@ export async function createClient(formData: FormData) {
     name: formData.get("name"),
     websiteUrl: formData.get("websiteUrl"),
     dbUrl: formData.get("dbUrl"),
+    phoneNumber: formData.get("phoneNumber"),
     adminEmail: formData.get("adminEmail"),
     adminPassword: formData.get("adminPassword"),
   });
@@ -28,7 +33,7 @@ export async function createClient(formData: FormData) {
     return;
   }
 
-  const { name, websiteUrl, dbUrl, adminEmail, adminPassword } = validatedFields.data;
+  const { name, websiteUrl, dbUrl, phoneNumber, adminEmail, adminPassword } = validatedFields.data;
   const hashedPassword = await bcrypt.hash(adminPassword, 10);
   const apiKey = `nano_${crypto.randomUUID().replace(/-/g, '')}`;
 
@@ -38,6 +43,7 @@ export async function createClient(formData: FormData) {
         name,
         websiteUrl,
         dbUrl,
+        phoneNumber,
         status: "active",
         apiKey,
         nextPaymentDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
@@ -114,6 +120,25 @@ export async function toggleClientStatus(clientId: string, currentStatus: string
   revalidatePath(`/dashboard/clients/${clientId}`);
 }
 
+export async function updateClientPhone(formData: FormData) {
+  const clientId = formData.get("clientId") as string;
+  const phoneNumber = formData.get("phoneNumber") as string;
+
+  if (!clientId) return;
+
+  try {
+    await prisma.client.update({
+      where: { id: clientId },
+      data: { phoneNumber },
+    });
+  } catch (error) {
+    console.error("Update Phone Error:", error);
+    return;
+  }
+  revalidatePath("/dashboard");
+  revalidatePath(`/dashboard/clients/${clientId}`);
+}
+
 export async function deleteClient(clientId: string) {
   try {
     await prisma.$transaction([
@@ -126,5 +151,121 @@ export async function deleteClient(clientId: string) {
     return;
   }
   revalidatePath("/dashboard");
+}
+
+export async function submitManualPayment(clientId: string, amount: number, utrNumber: string) {
+  try {
+    await prisma.payment.create({
+      data: {
+        clientId,
+        amount,
+        status: "pending",
+        method: "manual",
+        transactionId: utrNumber,
+      },
+    });
+  } catch (error) {
+    console.error("Submit Manual Payment Error:", error);
+    return;
+  }
+  revalidatePath(`/pay/${clientId}`);
+  revalidatePath("/dashboard/payments");
+}
+
+export async function approvePayment(paymentId: string) {
+  try {
+    const payment = await prisma.payment.update({
+      where: { id: paymentId },
+      data: {
+        status: "paid",
+        paidAt: new Date(),
+      },
+    });
+
+    await prisma.client.update({
+      where: { id: payment.clientId },
+      data: {
+        status: "active",
+        nextPaymentDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // Extend 30 days
+      },
+    });
+  } catch (error) {
+    console.error("Approve Payment Error:", error);
+    return;
+  }
+  revalidatePath("/dashboard/payments");
+  revalidatePath("/dashboard");
+}
+
+export async function initiatePhonePePayment(clientId: string, amount: number) {
+  const transactionId = `T${Date.now()}`;
+  let checkoutUrl = "";
+
+  try {
+    // 1. Log payment as pending. It will be verified by the webhook callback.
+    await prisma.payment.create({
+      data: {
+        clientId,
+        amount,
+        status: "pending",
+        method: "phonepe",
+        transactionId: transactionId,
+      },
+    });
+
+    // 2. Build the domain dynamically for the callback
+    const reqHeaders = await headers();
+    const host = reqHeaders.get("host") || "localhost:3000";
+    const protocol = host.includes("localhost") ? "http" : "https";
+    const baseUrl = `${protocol}://${host}`;
+
+    // 3. Assemble PhonePe Payload
+    const payload = {
+      merchantId: PHONEPE_MERCHANT_ID,
+      merchantTransactionId: transactionId,
+      merchantUserId: clientId,
+      amount: Math.round(amount * 100), // Convert to paise
+      redirectUrl: `${baseUrl}/pay/${clientId}`,
+      redirectMode: "GET",
+      callbackUrl: `${baseUrl}/api/phonepe/callback`,
+      paymentInstrument: {
+        type: "PAY_PAGE",
+      },
+    };
+
+    const base64Payload = encodePayload(payload);
+    const checksum = generateChecksum(base64Payload, "/pg/v1/pay");
+
+    // 4. Send request to PhonePe Server
+    const response = await fetch(`${PHONEPE_HOST}/pg/v1/pay`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-VERIFY": checksum,
+      },
+      body: JSON.stringify({ request: base64Payload }),
+    });
+
+    const data = await response.json();
+    
+    if (data.success && data.data?.instrumentResponse?.redirectInfo?.url) {
+      checkoutUrl = data.data.instrumentResponse.redirectInfo.url;
+    } else {
+      console.error("PhonePe API Error Payload:", data);
+      throw new Error(`PhonePe Gateway Error: ${data.message || "Unknown error"}`);
+    }
+  } catch (error) {
+    console.error("PhonePe Gateway Request Error:", error);
+    throw error;
+  }
+
+  // Next.js redirect must be called outside try-catch to properly interrupt execution
+  if (checkoutUrl) {
+    redirect(checkoutUrl);
+  }
+}
+
+export async function adminSignOut() {
+  await signOut({ redirectTo: "/login" });
 }
 

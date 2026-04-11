@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { LayoutDashboard, Users, CreditCard, Settings, PlusCircle } from "lucide-react";
+import { LayoutDashboard, Users, CreditCard, Settings, PlusCircle, LogOut } from "lucide-react";
 
 export default function DashboardLayout({
   children,
@@ -24,6 +24,9 @@ export default function DashboardLayout({
             <SidebarItem icon={<Users size={20} />} label="Clients" href="/dashboard" />
             <SidebarItem icon={<CreditCard size={20} />} label="Payments" href="/dashboard/payments" />
             <SidebarItem icon={<Settings size={20} />} label="Settings" href="/dashboard/settings" />
+            <div className="mt-8 border-t border-slate-200 dark:border-slate-800 pt-4">
+              <SidebarItem icon={<LogOut size={20} className="text-red-500" />} label="Logout" href="/logout" />
+            </div>
           </nav>
         </div>
 

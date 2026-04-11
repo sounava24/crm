@@ -1,13 +1,15 @@
 import { prisma } from "@/lib/prisma";
-import { format } from "date-fns";
-import { ExternalLink, Shield, ShieldOff, Clock, Globe, Settings, PlusCircle, Trash2 } from "lucide-react";
+import { format, differenceInDays } from "date-fns";
+import { ExternalLink, Shield, ShieldOff, Globe, Settings, PlusCircle, Trash2, CreditCard, MessageCircle } from "lucide-react";
 import Link from "next/link";
 import { toggleClientStatus, deleteClient } from "@/lib/actions";
+import { CountdownTimer } from "@/components/countdown-timer";
 
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
   const clients = await prisma.client.findMany({
+    where: { id: { not: "system-client" } },
     orderBy: { createdAt: "desc" },
   });
 
@@ -34,8 +36,26 @@ export default async function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {clients.map((client: any) => (
-          <div key={client.id} className="glass-card rounded-2xl overflow-hidden group">
+        {clients.map((client: any) => {
+          const nextPaymentDate = new Date(client.nextPaymentDate);
+          const isOverdue = new Date() > nextPaymentDate;
+          const daysUntilDue = differenceInDays(nextPaymentDate, new Date());
+          const isDueSoon = daysUntilDue >= 0 && daysUntilDue <= 5;
+          
+          let cardStyle = "glass-card rounded-2xl overflow-hidden group border border-slate-200 dark:border-slate-800 transition-all";
+          if (isOverdue) cardStyle += " shadow-[0_0_15px_rgba(239,68,68,0.15)] border-red-500/30";
+          else if (isDueSoon) cardStyle += " shadow-[0_0_15px_rgba(245,158,11,0.15)] border-amber-500/30";
+          
+          const defaultMessage = `Hi ${client.name} team,\n\nThis is a friendly reminder from your CRM regarding your active service (${client.websiteUrl}).\n\n` + 
+            (isOverdue 
+              ? `Your payment is currently OVERDUE by ${Math.abs(daysUntilDue)} days. Please clear your dues on the portal immediately to ensure your services remain fully active.` 
+              : `Your next payment is scheduled for ${format(nextPaymentDate, "MMM d, yyyy")}.`) + 
+            `\n\nThank you for choosing us!`;
+            
+          const whatsappUrl = `https://wa.me/${client.phoneNumber?.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(defaultMessage)}`;
+
+          return (
+          <div key={client.id} className={cardStyle}>
             {/* Website Preview Placeholder */}
             <div className="aspect-video bg-slate-100 dark:bg-slate-900 relative flex items-center justify-center overflow-hidden">
                <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent z-10" />
@@ -75,14 +95,32 @@ export default async function DashboardPage() {
                 </div>
               </div>
 
-              <div className="space-y-3 mb-6">
-                <div className="flex items-center gap-2 text-sm text-slate-500">
-                  <Clock size={14} />
-                  <span>Next Payment: {format(client.nextPaymentDate, "MMM d, yyyy")}</span>
-                </div>
+              <div className="mb-6">
+                <CountdownTimer 
+                  targetDate={nextPaymentDate} 
+                  isOverdue={isOverdue} 
+                  isDueSoon={isDueSoon} 
+                />
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 mb-4">
+                {client.phoneNumber ? (
+                  <a 
+                    href={whatsappUrl} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex-1 py-1.5 flex items-center justify-center gap-2 bg-[#25D366]/10 hover:bg-[#25D366] text-[#25D366] hover:text-white rounded-lg text-xs font-bold transition-all border border-[#25D366]/20"
+                  >
+                    <MessageCircle size={14} /> Send WhatsApp Reminder
+                  </a>
+                ) : (
+                  <div className="flex-1 py-1.5 flex items-center justify-center gap-2 bg-slate-100 dark:bg-slate-800 text-slate-400 rounded-lg text-xs font-bold cursor-not-allowed border border-slate-200 dark:border-slate-800">
+                    <MessageCircle size={14} opacity={0.5} /> No Phone Configured
+                  </div>
+                )}
+              </div>
+
+              <div className="flex items-center gap-2">
                 <form action={toggleClientStatus.bind(null, client.id, client.status)} className="flex-1">
                   <button
                     className={`w-full py-2 px-4 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 ${
@@ -97,8 +135,17 @@ export default async function DashboardPage() {
                 </form>
                 
                 <Link 
+                  href={`/pay/${client.id}`}
+                  className="relative z-20 p-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-emerald-500 transition-all text-slate-500 hover:text-emerald-500"
+                  title="Client Billing Page"
+                >
+                  <CreditCard size={20} />
+                </Link>
+
+                <Link 
                   href={`/dashboard/clients/${client.id}`}
                   className="relative z-20 p-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-500 transition-all text-slate-500 hover:text-indigo-500"
+                  title="Client Settings"
                 >
                   <Settings size={20} />
                 </Link>
@@ -115,7 +162,7 @@ export default async function DashboardPage() {
               </div>
             </div>
           </div>
-        ))}
+        )})}
 
         {clients.length === 0 && (
           <div className="col-span-full py-20 flex flex-col items-center justify-center text-center glass-card rounded-2xl border-dashed border-2">

@@ -38,16 +38,29 @@ export default function AddClientPage() {
             </div>
           </div>
 
-          <div className="space-y-2">
-            <label htmlFor="dbUrl" className="text-sm font-medium">Database URL</label>
-            <input
-              id="dbUrl"
-              name="dbUrl"
-              type="text"
-              required
-              placeholder="postgresql://user:password@host:port/db"
-              className="w-full px-4 py-2 bg-white/5 border border-slate-200 dark:border-slate-800 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
-            />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <label htmlFor="dbUrl" className="text-sm font-medium">Database URL</label>
+              <input
+                id="dbUrl"
+                name="dbUrl"
+                type="text"
+                required
+                placeholder="postgresql://user:password@host:port/db"
+                className="w-full px-4 py-2 bg-white/5 border border-slate-200 dark:border-slate-800 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <label htmlFor="phoneNumber" className="text-sm font-medium">WhatsApp Number (with country code)</label>
+              <input
+                id="phoneNumber"
+                name="phoneNumber"
+                type="tel"
+                placeholder="+1234567890"
+                className="w-full px-4 py-2 bg-white/5 border border-slate-200 dark:border-slate-800 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
+              />
+            </div>
           </div>
 
           <div className="pt-4 border-t border-slate-200 dark:border-slate-800">

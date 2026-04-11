@@ -5,6 +5,20 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 
+declare module "next-auth" {
+  interface User {
+    id: string;
+    clientId: string;
+  }
+  interface Session {
+    user: {
+      id: string;
+      email: string;
+      clientId: string;
+    };
+  }
+}
+
 export const { auth, signIn, signOut, handlers } = NextAuth({
   ...authConfig,
   providers: [
@@ -20,7 +34,9 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
           if (!admin) return null;
           const passwordsMatch = await bcrypt.compare(password, admin.password);
 
-          if (passwordsMatch) return { id: admin.id, email: admin.email };
+          if (passwordsMatch) {
+            return { id: admin.id, email: admin.email, clientId: admin.clientId };
+          }
         }
 
         console.log("Invalid credentials");

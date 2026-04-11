@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { format } from "date-fns";
 import { CreditCard, ArrowUpRight, CheckCircle2 } from "lucide-react";
+import { approvePayment } from "@/lib/actions";
 
 export const dynamic = "force-dynamic";
 
@@ -54,6 +55,7 @@ export default async function PaymentsPage() {
               <tr className="bg-slate-50/50 dark:bg-slate-950/50 text-slate-500 text-sm uppercase tracking-wider">
                 <th className="px-6 py-4 font-semibold">Client</th>
                 <th className="px-6 py-4 font-semibold">Amount</th>
+                <th className="px-6 py-4 font-semibold">Method & ID</th>
                 <th className="px-6 py-4 font-semibold">Status</th>
                 <th className="px-6 py-4 font-semibold">Date</th>
               </tr>
@@ -69,9 +71,26 @@ export default async function PaymentsPage() {
                     ${payment.amount.toFixed(2)}
                   </td>
                   <td className="px-6 py-4">
-                    <span className="px-2 py-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold rounded-full">
-                      {payment.status.toUpperCase()}
-                    </span>
+                    <div className="text-sm font-medium">{payment.method === 'phonepe' ? 'PhonePe' : payment.method === 'manual' ? 'Manual QR' : 'System'}</div>
+                    <div className="text-xs text-slate-500 font-mono">{payment.transactionId || '—'}</div>
+                  </td>
+                  <td className="px-6 py-4">
+                    {payment.status === 'pending' ? (
+                      <div className="flex items-center gap-2">
+                        <span className="px-2 py-1 bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[10px] font-bold rounded-full uppercase">
+                          Pending Verification
+                        </span>
+                        <form action={approvePayment.bind(null, payment.id)}>
+                          <button className="px-3 py-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-full transition-colors shadow shadow-indigo-500/20">
+                            Approve
+                          </button>
+                        </form>
+                      </div>
+                    ) : (
+                      <span className="px-2 py-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold rounded-full">
+                        {payment.status.toUpperCase()}
+                      </span>
+                    )}
                   </td>
                   <td className="px-6 py-4 text-sm text-slate-500">
                     {payment.paidAt ? format(payment.paidAt, "MMM d, yyyy HH:mm") : "Pending"}

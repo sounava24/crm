@@ -10,11 +10,12 @@ import {
   Key, 
   RefreshCw, 
   History,
-  AlertCircle
+  AlertCircle,
+  Phone
 } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { regenerateApiKey, toggleClientStatus } from "@/lib/actions";
+import { regenerateApiKey, toggleClientStatus, updateClientPhone } from "@/lib/actions";
 import { CopyButton } from "@/components/copy-button";
 
 export const dynamic = "force-dynamic";
@@ -107,6 +108,29 @@ export default async function ClientDetailPage(props: { params: Promise<{ id: st
             }`} />
           </div>
 
+          {/* Website Preview */}
+          <div className="glass-card p-4 rounded-3xl overflow-hidden relative">
+             <div className="flex items-center gap-2 text-sm font-bold text-slate-500 mb-4 px-4">
+               <Globe size={16} /> Live Website Preview
+             </div>
+             <div className="w-full h-[400px] rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-900/5 relative">
+               <div className="absolute inset-x-0 top-0 h-10 bg-slate-200 dark:bg-slate-800 flex items-center px-4 gap-2 border-b border-slate-300 dark:border-slate-700">
+                 <div className="w-3 h-3 rounded-full bg-red-400"></div>
+                 <div className="w-3 h-3 rounded-full bg-amber-400"></div>
+                 <div className="w-3 h-3 rounded-full bg-emerald-400"></div>
+                 <div className="ml-4 flex-1 bg-white dark:bg-slate-900 rounded-md py-1 px-3 text-xs text-slate-500 truncate text-center">
+                   {client.websiteUrl}
+                 </div>
+               </div>
+               <iframe 
+                 src={client.websiteUrl} 
+                 className="w-full h-full pt-10 border-0"
+                 title={`${client.name} Website`}
+                 sandbox="allow-same-origin allow-scripts"
+               />
+             </div>
+          </div>
+
           {/* API Security Hub */}
           <div className="glass-card p-8 rounded-3xl">
             <div className="flex items-center justify-between mb-6">
@@ -195,6 +219,28 @@ export default async function ClientDetailPage(props: { params: Promise<{ id: st
                 </div>
               ))}
             </div>
+          </div>
+
+          <div className="glass-card p-6 rounded-3xl">
+            <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
+              <Phone size={18} className="text-indigo-500" /> Contact Information
+            </h2>
+            <form action={updateClientPhone} className="flex flex-col gap-3">
+              <div className="text-xs text-slate-500">Update WhatsApp number (include country code)</div>
+              <input type="hidden" name="clientId" value={client.id} />
+              <div className="flex gap-2">
+                <input 
+                  type="tel" 
+                  name="phoneNumber" 
+                  defaultValue={client.phoneNumber || ""} 
+                  placeholder="+1234567890" 
+                  className="flex-1 px-4 py-2 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all text-sm"
+                />
+                <button type="submit" className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition-all text-sm whitespace-nowrap shadow-md">
+                  Save
+                </button>
+              </div>
+            </form>
           </div>
 
           <div className="glass-card p-6 rounded-3xl bg-red-500/5 border-red-500/20">

@@ -16,6 +16,7 @@ model Client {
   dbUrl           String
   status          String    // active | suspended
   apiKey          String?   @unique
+  phoneNumber     String?
   nextPaymentDate DateTime
   createdAt       DateTime  @default(now())
 
@@ -36,6 +37,8 @@ model Payment {
   clientId  String
   amount    Float
   status    String    // paid | pending
+  method    String?   // phonepe | manual
+  transactionId String? // UTR or Gateway ID
   paidAt    DateTime?
   client    Client    @relation(fields: [clientId], references: [id])
 }
