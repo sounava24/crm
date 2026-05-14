@@ -269,3 +269,72 @@ export async function adminSignOut() {
   await signOut({ redirectTo: "/login" });
 }
 
+export async function updateAdminPassword(
+  adminId: string,
+  formData: FormData
+): Promise<{ success: boolean; error?: string }> {
+  const currentPassword = formData.get("currentPassword") as string;
+  const newPassword = formData.get("newPassword") as string;
+  const confirmPassword = formData.get("confirmPassword") as string;
+
+  if (!currentPassword || !newPassword || !confirmPassword) {
+    return { success: false, error: "All fields are required." };
+  }
+  if (newPassword.length < 6) {
+    return { success: false, error: "New password must be at least 6 characters." };
+  }
+  if (newPassword !== confirmPassword) {
+    return { success: false, error: "New passwords do not match." };
+  }
+
+  try {
+    const admin = await prisma.admin.findUnique({ where: { id: adminId } });
+    if (!admin) return { success: false, error: "Admin not found." };
+
+    const isMatch = await bcrypt.compare(currentPassword, admin.password);
+    if (!isMatch) return { success: false, error: "Current password is incorrect." };
+
+    const hashed = await bcrypt.hash(newPassword, 10);
+    await prisma.admin.update({
+      where: { id: adminId },
+      data: { password: hashed },
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("Update Password Error:", error);
+    return { success: false, error: "An unexpected error occurred." };
+  }
+}
+
+export async function autoSuspendOverdueClients(): Promise<{
+  suspended: number;
+  clientNames: string[];
+}> {
+  try {
+    const overdue = await prisma.client.findMany({
+      where: {
+        status: "active",
+        nextPaymentDate: { lt: new Date() },
+        id: { not: "system-client" },
+      },
+      select: { id: true, name: true },
+    });
+
+    if (overdue.length === 0) return { suspended: 0, clientNames: [] };
+
+    await prisma.client.updateMany({
+      where: {
+        id: { in: overdue.map((c) => c.id) },
+      },
+      data: { status: "suspended" },
+    });
+
+    revalidatePath("/dashboard");
+    return { suspended: overdue.length, clientNames: overdue.map((c) => c.name) };
+  } catch (error) {
+    console.error("Auto Suspend Error:", error);
+    return { suspended: 0, clientNames: [] };
+  }
+}
+

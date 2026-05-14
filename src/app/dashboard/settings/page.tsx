@@ -1,10 +1,22 @@
-import { Key, Shield, User, Bell, Save } from "lucide-react";
 import { auth } from "@/auth";
+import { prisma } from "@/lib/prisma";
+import { redirect } from "next/navigation";
+import AdminPasswordForm from "@/components/admin-password-form";
+import { Key, Shield, User } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
 export default async function SettingsPage() {
   const session = await auth();
+  if (!session?.user?.id) redirect("/login");
+
+  // Fetch the admin record so we can pass the id to the form
+  const admin = await prisma.admin.findUnique({
+    where: { email: session.user.email! },
+    select: { id: true, email: true },
+  });
+
+  if (!admin) redirect("/login");
 
   return (
     <div className="space-y-8 animate-fade-in max-w-4xl">
@@ -25,60 +37,38 @@ export default async function SettingsPage() {
             <Shield size={18} /> Security
           </button>
           <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-white/50 dark:hover:bg-slate-900 transition-all font-medium text-sm">
-            <Bell size={18} /> Notifications
-          </button>
-          <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 dark:text-slate-400 hover:bg-white/50 dark:hover:bg-slate-900 transition-all font-medium text-sm">
             <Key size={18} /> API Webhooks
           </button>
         </div>
 
         {/* Settings Content */}
         <div className="md:col-span-3 space-y-6">
+          {/* Read-only profile info */}
           <div className="glass-card rounded-3xl p-8">
             <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
               <User size={20} className="text-indigo-500" />
               Admin Profile
             </h2>
-            
-            <div className="space-y-6">
+            <div className="space-y-4">
               <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-500 uppercase">Email Address</label>
-                <input 
-                  type="email" 
+                <label className="text-sm font-bold text-slate-500 uppercase">
+                  Email Address
+                </label>
+                <input
+                  type="email"
                   disabled
-                  value={session?.user?.email || "admin@crm.com"} 
+                  value={admin.email}
                   className="w-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 text-slate-500 cursor-not-allowed"
                 />
-                <p className="text-xs text-slate-400">The primary super admin email cannot be changed from the dashboard.</p>
+                <p className="text-xs text-slate-400">
+                  The primary super admin email cannot be changed from the dashboard.
+                </p>
               </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-500 uppercase">Display Name</label>
-                <input 
-                  type="text" 
-                  defaultValue="CRM Super Admin" 
-                  className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-500 uppercase">TimezonePreference</label>
-                <select className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all">
-                  <option>UTC (Coordinated Universal Time)</option>
-                  <option>EST (Eastern Standard Time)</option>
-                  <option>PST (Pacific Standard Time)</option>
-                  <option>IST (Indian Standard Time)</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="mt-8 pt-8 border-t border-slate-200 dark:border-slate-800 flex justify-end">
-              <button className="flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-all shadow-md">
-                <Save size={18} />
-                Save Changes
-              </button>
             </div>
           </div>
+
+          {/* Change Password */}
+          <AdminPasswordForm adminId={admin.id} />
         </div>
       </div>
     </div>

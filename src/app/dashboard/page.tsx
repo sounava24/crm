@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { format, differenceInDays } from "date-fns";
-import { ExternalLink, Shield, ShieldOff, Globe, Settings, PlusCircle, Trash2, CreditCard, MessageCircle } from "lucide-react";
+import { ExternalLink, Shield, ShieldOff, Globe, Settings, PlusCircle, Trash2, CreditCard, MessageCircle, AlertTriangle, Clock } from "lucide-react";
 import Link from "next/link";
 import { toggleClientStatus, deleteClient } from "@/lib/actions";
 import { CountdownTimer } from "@/components/countdown-timer";
@@ -13,6 +13,15 @@ export default async function DashboardPage() {
     orderBy: { createdAt: "desc" },
   });
 
+  const now = new Date();
+  const dueSoonClients = clients.filter((c: any) => {
+    const days = differenceInDays(new Date(c.nextPaymentDate), now);
+    return c.status === "active" && days >= 0 && days <= 5;
+  });
+  const overdueActiveClients = clients.filter((c: any) => {
+    return c.status === "active" && new Date(c.nextPaymentDate) < now;
+  });
+
   return (
     <div className="space-y-8 animate-fade-in">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -23,17 +32,65 @@ export default async function DashboardPage() {
           </p>
         </div>
         
-        <div className="flex items-center gap-4 text-sm">
+        <div className="flex items-center gap-3 text-sm flex-wrap justify-end">
           <div className="flex items-center gap-2 px-3 py-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-full border border-emerald-500/20">
             <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
             <span>{clients.filter((c: any) => c.status === "active").length} Active</span>
           </div>
+          {dueSoonClients.length > 0 && (
+            <div className="flex items-center gap-2 px-3 py-1 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-full border border-amber-500/20">
+              <Clock size={12} className="animate-pulse" />
+              <span>{dueSoonClients.length} Due Soon</span>
+            </div>
+          )}
+          {overdueActiveClients.length > 0 && (
+            <div className="flex items-center gap-2 px-3 py-1 bg-orange-500/10 text-orange-600 dark:text-orange-400 rounded-full border border-orange-500/20 animate-pulse">
+              <AlertTriangle size={12} />
+              <span>{overdueActiveClients.length} Overdue!</span>
+            </div>
+          )}
           <div className="flex items-center gap-2 px-3 py-1 bg-red-500/10 text-red-600 dark:text-red-400 rounded-full border border-red-500/20">
             <div className="w-2 h-2 rounded-full bg-red-500" />
             <span>{clients.filter((c: any) => c.status === "suspended").length} Suspended</span>
           </div>
         </div>
       </div>
+
+      {/* Payment Alerts Banner */}
+      {(overdueActiveClients.length > 0 || dueSoonClients.length > 0) && (
+        <div className="space-y-3">
+          {overdueActiveClients.length > 0 && (
+            <div className="flex items-start gap-4 p-4 rounded-2xl border border-orange-400/40 bg-orange-500/10">
+              <div className="w-9 h-9 rounded-xl bg-orange-500/20 flex items-center justify-center shrink-0">
+                <AlertTriangle size={18} className="text-orange-500" />
+              </div>
+              <div className="min-w-0">
+                <p className="font-bold text-orange-700 dark:text-orange-400 text-sm">
+                  🔥 {overdueActiveClients.length} client{overdueActiveClients.length > 1 ? "s are" : " is"} overdue but still active — auto-suspend pending.
+                </p>
+                <p className="text-xs text-orange-600/80 dark:text-orange-400/70 mt-1">
+                  {overdueActiveClients.map((c: any) => c.name).join(", ")}
+                </p>
+              </div>
+            </div>
+          )}
+          {dueSoonClients.length > 0 && (
+            <div className="flex items-start gap-4 p-4 rounded-2xl border border-amber-400/40 bg-amber-500/10">
+              <div className="w-9 h-9 rounded-xl bg-amber-500/20 flex items-center justify-center shrink-0">
+                <Clock size={18} className="text-amber-500" />
+              </div>
+              <div className="min-w-0">
+                <p className="font-bold text-amber-700 dark:text-amber-400 text-sm">
+                  ⚠️ {dueSoonClients.length} client{dueSoonClients.length > 1 ? "s have" : " has"} a payment due within 5 days.
+                </p>
+                <p className="text-xs text-amber-600/80 dark:text-amber-400/70 mt-1">
+                  {dueSoonClients.map((c: any) => `${c.name} (${differenceInDays(new Date(c.nextPaymentDate), now)}d left)`).join(", ")}
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {clients.map((client: any) => {

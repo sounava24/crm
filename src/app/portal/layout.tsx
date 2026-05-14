@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { LayoutDashboard, Receipt, LogOut, Shield } from "lucide-react";
+import { LayoutDashboard, Receipt, LogOut, Shield, UserCircle } from "lucide-react";
 import { auth } from "@/auth";
 
 export default async function PortalLayout({
@@ -25,6 +25,7 @@ export default async function PortalLayout({
           <nav className="space-y-2">
             <SidebarItem icon={<LayoutDashboard size={20} />} label="Overview" href="/portal" />
             <SidebarItem icon={<Receipt size={20} />} label="Receipts" href="/portal/receipts" />
+            <SidebarItem icon={<UserCircle size={20} />} label="My Profile" href="/portal/profile" />
             
             <div className="mt-8 border-t border-slate-200 dark:border-slate-800 pt-4">
               <SidebarItem icon={<LogOut size={20} className="text-red-500" />} label="Logout" href="/logout" />
