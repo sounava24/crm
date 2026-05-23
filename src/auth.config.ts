@@ -27,6 +27,7 @@ export const authConfig = {
 
       const isOnDashboard = nextUrl.pathname.startsWith("/dashboard");
       const isOnPay = nextUrl.pathname.startsWith("/pay");
+      const isOnPaymentSuccess = nextUrl.pathname.startsWith("/payment-success");
       const isOnLogout = nextUrl.pathname.startsWith("/logout");
       const isOnPortal = nextUrl.pathname.startsWith("/portal");
 
@@ -42,7 +43,7 @@ export const authConfig = {
         return true;
       }
 
-      if (isLoggedIn && !isOnPay && !isOnLogout) {
+      if (isLoggedIn && !isOnPay && !isOnPaymentSuccess && !isOnLogout) {
         if (isSuperAdmin) return Response.redirect(new URL("/dashboard", nextUrl));
         if (isClient) return Response.redirect(new URL("/portal", nextUrl));
       }

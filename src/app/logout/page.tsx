@@ -4,14 +4,14 @@ import { LogOut, X } from "lucide-react";
 
 export default function LogoutPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center p-6 bg-slate-50 dark:bg-slate-950">
+    <div className="min-h-screen flex items-center justify-center p-6 bg-locked-bg">
       <div className="w-full max-w-md animate-fade-in">
         <div className="text-center mb-8">
           <div className="w-16 h-16 bg-red-600 rounded-2xl mx-auto flex items-center justify-center text-white shadow-xl shadow-red-500/20 mb-4">
             <LogOut size={32} />
           </div>
           <h1 className="text-3xl font-bold tracking-tight">Sign Out</h1>
-          <p className="text-slate-500 mt-2">Are you sure you want to sign out?</p>
+          <p className="text-locked-muted mt-2">Are you sure you want to sign out?</p>
         </div>
 
         <div className="glass-card p-8 rounded-2xl relative overflow-hidden">
@@ -33,7 +33,7 @@ export default function LogoutPage() {
             </form>
             <Link
               href="/dashboard"
-              className="w-full py-3 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-900 dark:text-slate-100 font-semibold rounded-xl transition-all flex items-center justify-center gap-2"
+              className="w-full py-3 bg-locked-card hover:bg-slate-300 dark:hover:bg-slate-700 text-locked-text dark:text-slate-100 font-semibold rounded-xl transition-all flex items-center justify-center gap-2"
             >
               <X size={20} /> Cancel
             </Link>

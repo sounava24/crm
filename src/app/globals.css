@@ -1,46 +1,59 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
-  --accent: #6366f1;
-  --accent-foreground: #ffffff;
-  --card: rgba(255, 255, 255, 0.7);
-  --card-border: rgba(226, 232, 240, 0.8);
-  --glass-bg: rgba(255, 255, 255, 0.6);
-  --glass-border: rgba(255, 255, 255, 0.4);
-  --sidebar: #ffffff;
-}
+  --background: #F8FAFC;
+  --foreground: #0A2540;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #020617;
-    --foreground: #f1f5f9;
-    --accent: #818cf8;
-    --card: rgba(15, 23, 42, 0.7);
-    --card-border: rgba(30, 41, 59, 0.8);
-    --glass-bg: rgba(15, 23, 42, 0.6);
-    --glass-border: rgba(255, 255, 255, 0.08);
-    --sidebar: #0f172a;
-  }
+  --brand-blue: #1E90FF;
+  --brand-gradient-end: #00C6FF;
+  --brand-accent: #FFA500;
+  --brand-bg: #F8FAFC;
+
+  --locked-bg: #08111d;
+  --locked-panel: rgba(14, 25, 40, 0.9);
+  --locked-panel-solid: #101a29;
+  --locked-card: rgba(24, 38, 59, 0.92);
+  --locked-border: rgba(148, 163, 184, 0.26);
+  --locked-text: #F8FAFC;
+  --locked-muted: #C5D4E4;
+
+  --app-background: var(--locked-bg);
+  --app-foreground: var(--locked-text);
+  --accent: var(--brand-blue);
+  --accent-foreground: #ffffff;
+  --card: var(--locked-card);
+  --card-border: var(--locked-border);
+  --glass-bg: var(--locked-panel);
+  --glass-border: var(--locked-border);
+  --sidebar: var(--locked-panel-solid);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-background: var(--app-background);
+  --color-foreground: var(--app-foreground);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-card: var(--card);
   --color-card-border: var(--card-border);
+  --color-brand-blue: var(--brand-blue);
+  --color-brand-gradient-end: var(--brand-gradient-end);
+  --color-brand-accent: var(--brand-accent);
+  --color-locked-bg: var(--locked-bg);
+  --color-locked-panel: var(--locked-panel);
+  --color-locked-panel-solid: var(--locked-panel-solid);
+  --color-locked-card: var(--locked-card);
+  --color-locked-border: var(--locked-border);
+  --color-locked-text: var(--locked-text);
+  --color-locked-muted: var(--locked-muted);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--app-background);
+  color: var(--app-foreground);
   background-image: 
-    radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
-    radial-gradient(at 100% 0%, rgba(168, 85, 247, 0.15) 0px, transparent 50%),
-    radial-gradient(at 50% 100%, rgba(59, 130, 246, 0.1) 0px, transparent 50%);
+    radial-gradient(at 0% 0%, rgba(30, 144, 255, 0.14) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(0, 198, 255, 0.12) 0px, transparent 50%),
+    radial-gradient(at 50% 100%, rgba(255, 165, 0, 0.08) 0px, transparent 50%);
   background-attachment: fixed;
   min-height: 100vh;
 }
@@ -58,12 +71,12 @@ body {
 }
 
 .glass-card:hover {
-  border-color: rgba(99, 102, 241, 0.4);
+  border-color: rgba(30, 144, 255, 0.45);
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
 .glass-nav {
-  background: rgba(var(--background), 0.7);
+  background: var(--locked-panel);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--glass-border);
@@ -99,10 +112,10 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(99, 102, 241, 0.2);
+  background: rgba(30, 144, 255, 0.28);
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(99, 102, 241, 0.4);
+  background: rgba(0, 198, 255, 0.45);
 }

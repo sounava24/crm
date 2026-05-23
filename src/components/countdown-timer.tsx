@@ -50,11 +50,11 @@ export function CountdownTimer({ targetDate, isOverdue, isDueSoon }: CountdownTi
   if (!hasMounted) {
     return (
       <div className="flex flex-col gap-1 w-full animate-pulse">
-        <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
+        <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-locked-muted">
           <Clock size={14} />
           <span>Calculating...</span>
         </div>
-        <div className="h-[52px] w-full bg-slate-100 dark:bg-slate-800 rounded-lg"></div>
+        <div className="h-[52px] w-full bg-locked-panel-solid rounded-lg"></div>
       </div>
     );
   }
@@ -65,9 +65,9 @@ export function CountdownTimer({ targetDate, isOverdue, isDueSoon }: CountdownTi
     ? 'text-red-500 bg-red-500/10' 
     : isDueSoon 
       ? 'text-amber-500 bg-amber-500/10' 
-      : 'text-indigo-500 bg-indigo-500/10';
+      : 'text-brand-blue bg-brand-blue/10';
 
-  const iconClass = isOverdue ? 'text-red-500' : isDueSoon ? 'text-amber-500' : 'text-slate-500';
+  const iconClass = isOverdue ? 'text-red-500' : isDueSoon ? 'text-amber-500' : 'text-locked-muted';
 
   return (
     <div className="flex flex-col gap-2 w-full">

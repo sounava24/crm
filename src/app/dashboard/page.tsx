@@ -27,7 +27,7 @@ export default async function DashboardPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Client Portfolio</h1>
-          <p className="text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-locked-muted mt-1">
             Manage your websites and tenant services from one place.
           </p>
         </div>
@@ -99,7 +99,7 @@ export default async function DashboardPage() {
           const daysUntilDue = differenceInDays(nextPaymentDate, new Date());
           const isDueSoon = daysUntilDue >= 0 && daysUntilDue <= 5;
           
-          let cardStyle = "glass-card rounded-2xl overflow-hidden group border border-slate-200 dark:border-slate-800 transition-all";
+          let cardStyle = "glass-card rounded-2xl overflow-hidden group border border-locked-border transition-all";
           if (isOverdue) cardStyle += " shadow-[0_0_15px_rgba(239,68,68,0.15)] border-red-500/30";
           else if (isDueSoon) cardStyle += " shadow-[0_0_15px_rgba(245,158,11,0.15)] border-amber-500/30";
           
@@ -114,7 +114,7 @@ export default async function DashboardPage() {
           return (
           <div key={client.id} className={cardStyle}>
             {/* Website Preview Placeholder */}
-            <div className="aspect-video bg-slate-100 dark:bg-slate-900 relative flex items-center justify-center overflow-hidden">
+            <div className="aspect-video bg-locked-panel-solid relative flex items-center justify-center overflow-hidden">
                <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent z-10" />
                <img 
                  src={`https://api.microlink.io/?url=${encodeURIComponent(client.websiteUrl)}&screenshot=true&embed=screenshot.url`}
@@ -144,7 +144,7 @@ export default async function DashboardPage() {
                     href={client.websiteUrl} 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="text-indigo-500 text-sm flex items-center gap-1 hover:underline"
+                    className="text-brand-blue text-sm flex items-center gap-1 hover:underline"
                   >
                     {client.websiteUrl.replace('https://', '')}
                     <ExternalLink size={12} />
@@ -171,7 +171,7 @@ export default async function DashboardPage() {
                     <MessageCircle size={14} /> Send WhatsApp Reminder
                   </a>
                 ) : (
-                  <div className="flex-1 py-1.5 flex items-center justify-center gap-2 bg-slate-100 dark:bg-slate-800 text-slate-400 rounded-lg text-xs font-bold cursor-not-allowed border border-slate-200 dark:border-slate-800">
+                  <div className="flex-1 py-1.5 flex items-center justify-center gap-2 bg-locked-panel-solid text-locked-muted/80 rounded-lg text-xs font-bold cursor-not-allowed border border-locked-border">
                     <MessageCircle size={14} opacity={0.5} /> No Phone Configured
                   </div>
                 )}
@@ -193,7 +193,7 @@ export default async function DashboardPage() {
                 
                 <Link 
                   href={`/pay/${client.id}`}
-                  className="relative z-20 p-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-emerald-500 transition-all text-slate-500 hover:text-emerald-500"
+                  className="relative z-20 p-2 rounded-xl bg-locked-panel-solid border border-locked-border hover:border-brand-accent transition-all text-locked-muted hover:text-brand-accent"
                   title="Client Billing Page"
                 >
                   <CreditCard size={20} />
@@ -201,7 +201,7 @@ export default async function DashboardPage() {
 
                 <Link 
                   href={`/dashboard/clients/${client.id}`}
-                  className="relative z-20 p-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-500 transition-all text-slate-500 hover:text-indigo-500"
+                  className="relative z-20 p-2 rounded-xl bg-locked-panel-solid border border-locked-border hover:border-brand-blue transition-all text-locked-muted hover:text-brand-blue"
                   title="Client Settings"
                 >
                   <Settings size={20} />
@@ -210,7 +210,7 @@ export default async function DashboardPage() {
                 <form action={deleteClient.bind(null, client.id)}>
                   <button 
                     type="submit"
-                    className="relative z-20 p-2 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-red-500 transition-all text-slate-500 hover:text-red-500"
+                    className="relative z-20 p-2 rounded-xl bg-locked-panel-solid border border-locked-border hover:border-red-500 transition-all text-locked-muted hover:text-red-500"
                     title="Delete Client"
                   >
                     <Trash2 size={20} />
@@ -223,16 +223,16 @@ export default async function DashboardPage() {
 
         {clients.length === 0 && (
           <div className="col-span-full py-20 flex flex-col items-center justify-center text-center glass-card rounded-2xl border-dashed border-2">
-            <div className="w-16 h-16 bg-slate-100 dark:bg-slate-900 rounded-full flex items-center justify-center mb-4 text-slate-400">
+            <div className="w-16 h-16 bg-locked-panel-solid rounded-full flex items-center justify-center mb-4 text-locked-muted/80">
               <PlusCircle size={32} />
             </div>
             <h3 className="text-xl font-bold">No Clients Yet</h3>
-            <p className="text-slate-500 max-w-xs mb-8">
+            <p className="text-locked-muted max-w-xs mb-8">
               Start by adding your first client website to the dashboard.
             </p>
             <Link 
               href="/dashboard/clients/add"
-              className="py-3 px-6 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl transition-all shadow-md"
+              className="py-3 px-6 bg-gradient-to-r from-brand-blue to-brand-gradient-end hover:from-brand-gradient-end hover:to-brand-blue text-white font-semibold rounded-xl transition-all shadow-md"
             >
               Add New Client
             </Link>

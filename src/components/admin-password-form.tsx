@@ -6,12 +6,12 @@ import { Lock, Eye, EyeOff, CheckCircle2, AlertCircle, Save } from "lucide-react
 
 interface AdminPasswordFormProps {
   adminId: string;
-  accentColor?: "indigo" | "emerald";
+  accentColor?: "brand" | "emerald";
 }
 
 export default function AdminPasswordForm({
   adminId,
-  accentColor = "indigo",
+  accentColor = "brand",
 }: AdminPasswordFormProps) {
   const [isPending, startTransition] = useTransition();
   const [result, setResult] = useState<{ success: boolean; error?: string } | null>(null);
@@ -22,13 +22,13 @@ export default function AdminPasswordForm({
 
   const accent =
     accentColor === "emerald"
-      ? "bg-emerald-600 hover:bg-emerald-700 focus:ring-emerald-500 shadow-emerald-500/20"
-      : "bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500 shadow-indigo-500/20";
+      ? "bg-emerald-600 hover:bg-emerald-700 focus:ring-brand-accent shadow-brand-accent/20"
+      : "bg-gradient-to-r from-brand-blue to-brand-gradient-end hover:from-brand-gradient-end hover:to-brand-blue focus:ring-brand-blue shadow-brand-blue/20";
 
   const focusRing =
     accentColor === "emerald"
-      ? "focus:ring-emerald-500"
-      : "focus:ring-indigo-500";
+      ? "focus:ring-brand-accent"
+      : "focus:ring-brand-blue";
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -49,7 +49,7 @@ export default function AdminPasswordForm({
       <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
         <Lock
           size={20}
-          className={accentColor === "emerald" ? "text-emerald-500" : "text-indigo-500"}
+          className={accentColor === "emerald" ? "text-brand-accent" : "text-brand-blue"}
         />
         Change Password
       </h2>
@@ -57,7 +57,7 @@ export default function AdminPasswordForm({
       <form ref={formRef} onSubmit={handleSubmit} className="space-y-5">
         {/* Current Password */}
         <div className="space-y-2">
-          <label className="text-sm font-bold text-slate-500 uppercase">
+          <label className="text-sm font-bold text-locked-muted uppercase">
             Current Password
           </label>
           <div className="relative">
@@ -66,12 +66,12 @@ export default function AdminPasswordForm({
               name="currentPassword"
               required
               placeholder="••••••••"
-              className={`w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 pr-12 focus:outline-none focus:ring-2 ${focusRing} transition-all`}
+              className={`w-full bg-locked-panel-solid border border-locked-border rounded-xl px-4 py-3 pr-12 focus:outline-none focus:ring-2 ${focusRing} transition-all`}
             />
             <button
               type="button"
               onClick={() => setShowCurrent((v) => !v)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-locked-muted/80 hover:text-locked-muted transition-colors"
             >
               {showCurrent ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
@@ -80,7 +80,7 @@ export default function AdminPasswordForm({
 
         {/* New Password */}
         <div className="space-y-2">
-          <label className="text-sm font-bold text-slate-500 uppercase">
+          <label className="text-sm font-bold text-locked-muted uppercase">
             New Password
           </label>
           <div className="relative">
@@ -90,12 +90,12 @@ export default function AdminPasswordForm({
               required
               minLength={6}
               placeholder="At least 6 characters"
-              className={`w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 pr-12 focus:outline-none focus:ring-2 ${focusRing} transition-all`}
+              className={`w-full bg-locked-panel-solid border border-locked-border rounded-xl px-4 py-3 pr-12 focus:outline-none focus:ring-2 ${focusRing} transition-all`}
             />
             <button
               type="button"
               onClick={() => setShowNew((v) => !v)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-locked-muted/80 hover:text-locked-muted transition-colors"
             >
               {showNew ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
@@ -104,7 +104,7 @@ export default function AdminPasswordForm({
 
         {/* Confirm Password */}
         <div className="space-y-2">
-          <label className="text-sm font-bold text-slate-500 uppercase">
+          <label className="text-sm font-bold text-locked-muted uppercase">
             Confirm New Password
           </label>
           <div className="relative">
@@ -113,12 +113,12 @@ export default function AdminPasswordForm({
               name="confirmPassword"
               required
               placeholder="Repeat new password"
-              className={`w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-3 pr-12 focus:outline-none focus:ring-2 ${focusRing} transition-all`}
+              className={`w-full bg-locked-panel-solid border border-locked-border rounded-xl px-4 py-3 pr-12 focus:outline-none focus:ring-2 ${focusRing} transition-all`}
             />
             <button
               type="button"
               onClick={() => setShowConfirm((v) => !v)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-locked-muted/80 hover:text-locked-muted transition-colors"
             >
               {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>

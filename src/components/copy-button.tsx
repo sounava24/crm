@@ -15,11 +15,11 @@ export function CopyButton({ text }: { text: string }) {
   return (
     <button 
       onClick={handleCopy}
-      className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-all flex items-center justify-center"
+      className="p-2 rounded-lg bg-locked-panel-solid hover:bg-locked-card text-locked-muted transition-all flex items-center justify-center"
       title="Copy API Key"
       type="button"
     >
-      {copied ? <Check size={16} className="text-emerald-500" /> : <Copy size={16} />}
+      {copied ? <Check size={16} className="text-brand-accent" /> : <Copy size={16} />}
     </button>
   );
 }

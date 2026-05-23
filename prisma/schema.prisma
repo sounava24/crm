@@ -18,6 +18,12 @@ model Client {
   apiKey          String?   @unique
   phoneNumber     String?
   nextPaymentDate DateTime
+  billingAmount   Float     @default(0)
+  billingCurrency String    @default("INR")
+  billingCycle    String    @default("MONTHLY") // MONTHLY | QUARTERLY | YEARLY | ONE_TIME
+  billingStatus   String    @default("PENDING") // PENDING | PAID | OVERDUE | SUSPENDED
+  nextRenewalDate DateTime?
+  billingNote     String?
   createdAt       DateTime  @default(now())
 
   admins          Admin[]
@@ -33,12 +39,35 @@ model Admin {
 }
 
 model Payment {
-  id        String    @id @default(cuid())
-  clientId  String
-  amount    Float
-  status    String    // paid | pending
-  method    String?   // phonepe | manual
-  transactionId String? // UTR or Gateway ID
-  paidAt    DateTime?
-  client    Client    @relation(fields: [clientId], references: [id])
+  id                       String    @id @default(cuid())
+  clientId                 String
+  amount                   Float
+  currency                 String    @default("INR")
+  status                   String    // CREATED | PENDING | PAID | FAILED | CANCELLED
+  provider                 String    @default("CASHFREE")
+  method                   String?   // legacy field retained for old records
+  transactionId            String?   // legacy field retained for old records
+  cashfreeOrderId          String?   @unique
+  cashfreePaymentId        String?
+  cashfreePaymentSessionId String?
+  cashfreeReferenceId      String?
+  cashfreeWebhookEventId   String?   @unique
+  billingCycle             String?
+  rawProviderStatus        Json?
+  paidAt                   DateTime?
+  createdAt                DateTime  @default(now())
+  updatedAt                DateTime  @default(now()) @updatedAt
+  client                   Client    @relation(fields: [clientId], references: [id])
+}
+
+model OtpToken {
+  id        String   @id @default(cuid())
+  email     String
+  userId    String?
+  purpose   String
+  codeHash  String
+  expiresAt DateTime
+  usedAt    DateTime?
+  attempts  Int      @default(0)
+  createdAt DateTime @default(now())
 }
