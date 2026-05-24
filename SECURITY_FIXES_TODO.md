@@ -33,6 +33,16 @@ Audit date: 2026-05-24
 
 ## Before Production
 
+0. Configure production secrets in the hosting provider only.
+   - Do not commit real secrets to the repository.
+   - Generate `AUTH_SECRET` with `openssl rand -base64 32`.
+   - Changing `AUTH_SECRET` invalidates all existing sessions.
+   - Set `STATUS_API_KEY` for controlled operational status lookups.
+   - Set `CRON_SECRET` and call cron jobs with the `X-Cron-Secret` header.
+   - Set `CASHFREE_WEBHOOK_SECRET`; production webhook verification will reject requests without it.
+   - Use a verified Resend sender such as `DM Stack Labs <noreply@mail.dmstacklabs.in>`.
+   - Keep `DATABASE_URL`, Cashfree keys, Resend keys, `CRON_SECRET`, `STATUS_API_KEY`, `SEED_ADMIN_PASSWORD`, and `AUTH_SECRET` only in hosting environment variables or a secret manager.
+
 1. Require `CASHFREE_WEBHOOK_SECRET` in production.
    - Do not silently fall back to `CASHFREE_CLIENT_SECRET`.
    - Status: Fixed in Phase 1.
