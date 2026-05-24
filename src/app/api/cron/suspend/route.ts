@@ -5,7 +5,8 @@ import { autoSuspendOverdueClients } from "@/lib/actions";
  * Auto Kill Switch Cron Route
  * Call this endpoint on a schedule (e.g. daily) to auto-suspend overdue clients.
  *
- * Security: Requires ?secret=CRON_SECRET query param or X-Cron-Secret header.
+ * Security: Requires X-Cron-Secret header in production.
+ * Local development may use ?secret=CRON_SECRET for manual testing.
  *
  * Example (Vercel Cron, vercel.json):
  *   { "crons": [{ "path": "/api/cron/suspend", "schedule": "0 0 * * *" }] }
@@ -17,11 +18,11 @@ export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
   const cronSecret = process.env.CRON_SECRET;
+  const isProduction = process.env.NODE_ENV === "production";
 
-  // Validate secret — allow header or query param
   const secretFromQuery = req.nextUrl.searchParams.get("secret");
   const secretFromHeader = req.headers.get("x-cron-secret");
-  const provided = secretFromQuery || secretFromHeader;
+  const provided = secretFromHeader || (!isProduction ? secretFromQuery : null);
 
   if (!cronSecret || provided !== cronSecret) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

@@ -1,26 +1,52 @@
 import type { NextAuthConfig } from "next-auth";
 
+type AppSessionUser = {
+  id?: string | null;
+  email?: string | null;
+  clientId?: string | null;
+  role?: "SUPER_ADMIN" | "CLIENT";
+};
+
+function getUserRole(user: { email?: string | null; clientId?: string | null }) {
+  return user.clientId === "system-client" || user.email === "admin@crm.com"
+    ? "SUPER_ADMIN"
+    : "CLIENT";
+}
+
 export const authConfig = {
   pages: {
     signIn: "/login",
   },
+  session: {
+    strategy: "jwt",
+    maxAge: 8 * 60 * 60,
+    updateAge: 15 * 60,
+  },
+  jwt: {
+    maxAge: 8 * 60 * 60,
+  },
+  secret: process.env.AUTH_SECRET,
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.clientId = (user as any).clientId;
+        const appUser = user as AppSessionUser;
+        token.clientId = appUser.clientId;
         token.id = user.id;
+        token.role = getUserRole(appUser);
       }
       return token;
     },
     async session({ session, token }) {
       if (token.clientId) {
-        (session.user as any).clientId = token.clientId;
-        (session.user as any).id = token.id;
+        const user = session.user as AppSessionUser;
+        user.clientId = String(token.clientId);
+        user.id = token.id ? String(token.id) : undefined;
+        user.role = token.role === "SUPER_ADMIN" ? "SUPER_ADMIN" : "CLIENT";
       }
       return session;
     },
     authorized({ auth, request: { nextUrl } }) {
-      const user = auth?.user as any;
+      const user = auth?.user as AppSessionUser | undefined;
       const isLoggedIn = !!user;
       const isSuperAdmin = isLoggedIn && (user?.clientId === "system-client" || user?.email === "admin@crm.com");
       const isClient = isLoggedIn && !!user?.clientId && user?.clientId !== "system-client";

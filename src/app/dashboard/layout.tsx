@@ -10,7 +10,6 @@ import {
   Settings,
   PlusCircle,
   LogOut,
-  UserCircle,
   Menu,
   X,
 } from "lucide-react";
@@ -135,14 +134,6 @@ function Sidebar({
           <SidebarItem
             icon={<Settings size={20} />}
             label="Settings"
-            href="/dashboard/settings"
-            collapsed={collapsed}
-            active={pathname.startsWith("/dashboard/settings")}
-            onNavigate={onNavigate}
-          />
-          <SidebarItem
-            icon={<UserCircle size={20} />}
-            label="My Profile"
             href="/dashboard/settings"
             collapsed={collapsed}
             active={pathname.startsWith("/dashboard/settings")}

@@ -1,0 +1,116 @@
+# DM Stack Labs CRM Security Fixes TODO
+
+Audit date: 2026-05-24
+
+## Immediate Fixes
+
+1. Upgrade vulnerable dependencies in a dedicated branch.
+   - `npm audit` reports 7 advisories, including high-severity Next.js advisories.
+   - Test patched `next`, `postcss`, `ws`, `brace-expansion`, and Prisma-related dependency updates.
+   - Do not use `npm audit fix --force` directly on `main`.
+
+2. Replace production `AUTH_SECRET`.
+   - Use a 32+ byte random secret.
+   - Example generation: `openssl rand -base64 32`.
+   - Restart app and expect existing sessions to be invalidated.
+
+3. Repair Prisma migration history.
+   - Add a baseline migration that creates `Client`, `Admin`, `Payment`, and `OtpToken`.
+   - Reconcile the existing `20260522120000_cashfree_billing` migration.
+   - Use `migrate resolve` only after confirming the real database state.
+   - Do not run `migrate reset` without backup and explicit approval.
+
+4. Harden `/api/status`.
+   - Remove unauthenticated `domain` fallback in production.
+   - Require `X-API-KEY` or signed requests.
+   - Avoid returning client name/payment dates unless required.
+   - Status: Fixed in Phase 1 for production with `X-API-KEY` or `X-Status-Api-Key`.
+
+5. Make Cashfree webhook handling fully idempotent.
+   - Catch duplicate `cashfreeWebhookEventId` unique constraint and return success.
+   - Add tests for replayed webhook events.
+   - Status: Code fix applied in Phase 1; replay test still needed.
+
+## Before Production
+
+1. Require `CASHFREE_WEBHOOK_SECRET` in production.
+   - Do not silently fall back to `CASHFREE_CLIENT_SECRET`.
+   - Status: Fixed in Phase 1.
+
+2. Add production CSP.
+   - Include exact allowlist for same-origin assets and Cashfree checkout script/frame/connect endpoints.
+   - Test dashboard, login, payment, and invoice pages after CSP.
+
+3. Enable HSTS at hosting/CDN layer.
+   - Only after HTTPS is confirmed.
+   - Suggested header: `Strict-Transport-Security: max-age=31536000; includeSubDomains`.
+
+4. Prefer cron secret in header only.
+   - Query-string secrets are easy to leak in logs.
+   - Use `X-Cron-Secret` or host-native cron identity.
+   - Status: Fixed in Phase 1 for production; local development query fallback remains.
+
+5. Add actor audit fields.
+   - Record which Super Admin updated billing, recorded cash payment, suspended/reactivated clients, or changed settings.
+
+6. Add IP/platform rate limiting.
+   - OTP send/update endpoints.
+   - Login route.
+   - Payment order creation.
+   - Public status endpoint.
+
+7. Convert status/provider fields to Prisma enums.
+   - `Client.status`
+   - `Client.billingStatus`
+   - `Client.billingCycle`
+   - `Payment.status`
+   - `Payment.provider`
+
+8. Add database indexes.
+   - `Admin.clientId`
+   - `Payment.clientId`
+   - `Payment.status`
+   - `Payment.createdAt`
+   - `Payment.paidAt`
+   - `OtpToken.email,userId,purpose,usedAt,createdAt`
+
+9. Replace seed defaults.
+   - Block `prisma/seed.ts` in production unless explicitly enabled.
+   - Require a strong `SEED_ADMIN_PASSWORD`.
+   - Status: Fixed in Phase 1.
+
+10. Verify encryption outside app code.
+   - HTTPS/TLS at hosting.
+   - TLS to PostgreSQL.
+   - Database encryption at rest.
+   - Backup encryption.
+   - Secret-manager storage for env vars.
+
+## Future Hardening
+
+1. Add automated security regression tests.
+   - Authorization on every API route.
+   - Invoice ownership.
+   - OTP lifecycle.
+   - Cashfree webhook signature and duplicate replay.
+
+2. Add centralized safe logging.
+   - Redact emails if needed.
+   - Never log passwords, OTPs, API keys, database URLs, or provider secrets.
+
+3. Add admin action audit log model.
+   - Actor id, action, target id, timestamp, IP/user agent if available.
+
+4. Add account lockout or adaptive throttling for repeated failed login attempts.
+
+5. Add session rotation policy for privilege changes and password changes.
+
+6. Add backup/restore drill documentation.
+
+7. Add incident response checklist.
+
+8. Add SAST/dependency scanning in CI.
+
+9. Add staging environment with real Resend verified domain and Cashfree sandbox webhooks.
+
+10. Add API schema validation tests for all request bodies.

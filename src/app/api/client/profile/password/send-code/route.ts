@@ -21,11 +21,6 @@ export async function POST() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    console.log("Password OTP client:", {
-      clientId: admin.clientId,
-      email: admin.email,
-    });
-
     const now = new Date();
     const sendWindowStart = new Date(now.getTime() - 15 * 60 * 1000);
     const latestToken = await prisma.otpToken.findFirst({

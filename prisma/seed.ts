@@ -3,6 +3,7 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import "dotenv/config";
+import { getStrongPasswordError, validateStrongPassword } from "../src/lib/password-policy";
 
 const connectionString = process.env.DATABASE_URL;
 
@@ -11,7 +12,20 @@ const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
-  const hashedPassword = await bcrypt.hash("password123", 10);
+  const seedPassword =
+    process.env.SEED_ADMIN_PASSWORD ||
+    (process.env.NODE_ENV === "production" ? "" : "Password123!");
+  const passwordValidation = validateStrongPassword(seedPassword);
+
+  if (!seedPassword || !passwordValidation.valid) {
+    throw new Error(
+      process.env.NODE_ENV === "production"
+        ? "SEED_ADMIN_PASSWORD is required in production and must meet the strong password policy."
+        : `Seed password is weak. ${getStrongPasswordError(seedPassword)}`
+    );
+  }
+
+  const hashedPassword = await bcrypt.hash(seedPassword, 10);
 
   // 1. Create a "System" client for management
   const systemClient = await prisma.client.upsert({
@@ -28,7 +42,7 @@ async function main() {
   });
 
   // 2. Create the Super Admin
-  const admin = await prisma.admin.upsert({
+  await prisma.admin.upsert({
     where: { email: "admin@crm.com" },
     update: {
       password: hashedPassword,
@@ -43,7 +57,7 @@ async function main() {
   console.log("Database seeded successfully!");
   console.log("----------------------------");
   console.log("Email: admin@crm.com");
-  console.log("Password: password123");
+  console.log("Password: configured via SEED_ADMIN_PASSWORD or local development default");
   console.log("----------------------------");
 }
 

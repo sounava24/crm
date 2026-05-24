@@ -4,6 +4,10 @@ import { Resend } from "resend";
 export const runtime = "nodejs";
 
 export async function GET() {
+  if (process.env.NODE_ENV === "production") {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
   try {
     if (!process.env.RESEND_API_KEY) {
       return NextResponse.json(

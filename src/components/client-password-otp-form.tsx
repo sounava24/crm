@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { AlertCircle, CheckCircle2, Eye, EyeOff, KeyRound, Lock, Mail, Send, Save } from "lucide-react";
+import { PASSWORD_REQUIREMENTS, STRONG_PASSWORD_PATTERN, validateStrongPassword } from "@/lib/password-policy";
 
 type Result = {
   success: boolean;
@@ -96,9 +97,10 @@ export function ClientPasswordOtpForm({ email }: { email: string }) {
 
   const canSubmit =
     code.trim().length === 6 &&
-    newPassword.length >= 8 &&
-    confirmPassword.length >= 8 &&
+    validateStrongPassword(newPassword).valid &&
+    newPassword === confirmPassword &&
     !isUpdating;
+  const passwordErrors = newPassword ? validateStrongPassword(newPassword).errors : [];
 
   return (
     <div className="glass-card rounded-3xl p-8">
@@ -164,7 +166,20 @@ export function ClientPasswordOtpForm({ email }: { email: string }) {
             onToggle={() => setShowNew((value) => !value)}
             placeholder="At least 8 characters"
             disabled={!codeSent}
+            pattern={STRONG_PASSWORD_PATTERN}
           />
+
+          <div className="rounded-xl border border-locked-border bg-locked-panel-solid/50 p-4 text-sm text-locked-muted">
+            <p className="mb-2 font-semibold text-locked-text">Password requirements</p>
+            <ul className="space-y-1">
+              {PASSWORD_REQUIREMENTS.map((requirement) => (
+                <li key={requirement}>{requirement}</li>
+              ))}
+            </ul>
+            {passwordErrors.length > 0 && (
+              <p className="mt-3 text-red-300">{passwordErrors[0]}</p>
+            )}
+          </div>
 
           <PasswordInput
             label="Confirm New Password"
@@ -174,7 +189,12 @@ export function ClientPasswordOtpForm({ email }: { email: string }) {
             onToggle={() => setShowConfirm((value) => !value)}
             placeholder="Repeat new password"
             disabled={!codeSent}
+            pattern={STRONG_PASSWORD_PATTERN}
           />
+
+          {confirmPassword && newPassword !== confirmPassword && (
+            <p className="text-sm font-medium text-red-300">New passwords do not match.</p>
+          )}
 
           {result && (
             <div
@@ -217,6 +237,7 @@ function PasswordInput({
   onToggle,
   placeholder,
   disabled,
+  pattern,
 }: {
   label: string;
   value: string;
@@ -225,6 +246,7 @@ function PasswordInput({
   onToggle: () => void;
   placeholder: string;
   disabled: boolean;
+  pattern?: string;
 }) {
   return (
     <div className="space-y-2">
@@ -235,6 +257,7 @@ function PasswordInput({
           value={value}
           onChange={(event) => onChange(event.target.value)}
           minLength={8}
+          pattern={pattern}
           placeholder={placeholder}
           disabled={disabled}
           className="w-full bg-locked-panel-solid border border-locked-border rounded-xl px-4 py-3 pr-12 focus:outline-none focus:ring-2 focus:ring-brand-blue transition-all disabled:cursor-not-allowed disabled:opacity-60"

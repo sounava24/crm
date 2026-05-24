@@ -113,7 +113,14 @@ export function verifyCashfreeWebhookSignature({
   signature: string | null;
   timestamp: string | null;
 }) {
-  const secret = process.env.CASHFREE_WEBHOOK_SECRET || process.env.CASHFREE_CLIENT_SECRET;
+  const webhookSecret = process.env.CASHFREE_WEBHOOK_SECRET;
+  const secret =
+    webhookSecret ||
+    (process.env.NODE_ENV === "production" ? undefined : process.env.CASHFREE_CLIENT_SECRET);
+
+  if (!webhookSecret && process.env.NODE_ENV !== "production") {
+    console.warn("CASHFREE_WEBHOOK_SECRET is not configured; using development fallback.");
+  }
 
   if (!secret || !signature || !timestamp) {
     return false;

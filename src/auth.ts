@@ -9,12 +9,14 @@ declare module "next-auth" {
   interface User {
     id: string;
     clientId: string;
+    role?: "SUPER_ADMIN" | "CLIENT";
   }
   interface Session {
     user: {
       id: string;
       email: string;
       clientId: string;
+      role?: "SUPER_ADMIN" | "CLIENT";
     };
   }
 }
@@ -35,11 +37,18 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
           const passwordsMatch = await bcrypt.compare(password, admin.password);
 
           if (passwordsMatch) {
-            return { id: admin.id, email: admin.email, clientId: admin.clientId };
+            return {
+              id: admin.id,
+              email: admin.email,
+              clientId: admin.clientId,
+              role:
+                admin.clientId === "system-client" || admin.email === "admin@crm.com"
+                  ? "SUPER_ADMIN"
+                  : "CLIENT",
+            };
           }
         }
 
-        console.log("Invalid credentials");
         return null;
       },
     }),

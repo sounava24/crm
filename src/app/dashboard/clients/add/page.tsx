@@ -1,6 +1,9 @@
 import { createClient } from "@/lib/actions";
+import { PASSWORD_REQUIREMENTS, STRONG_PASSWORD_PATTERN } from "@/lib/password-policy";
 
 export default function AddClientPage() {
+  const passwordRequirementText = PASSWORD_REQUIREMENTS.join(", ");
+
   return (
     <div className="max-w-2xl mx-auto p-6 animate-fade-in">
       <div className="glass-card p-8 rounded-2xl relative overflow-hidden">
@@ -73,9 +76,15 @@ export default function AddClientPage() {
                   name="adminPassword"
                   type="password"
                   required
+                  minLength={8}
+                  pattern={STRONG_PASSWORD_PATTERN}
+                  title={passwordRequirementText}
                   placeholder="••••••••"
                   className="w-full px-4 py-2 bg-locked-panel-solid/70 border border-locked-border rounded-lg focus:ring-2 focus:ring-brand-blue outline-none transition-all"
                 />
+                <p className="text-xs leading-5 text-locked-muted">
+                  Password must include at least 8 characters, uppercase, lowercase, number, and special character.
+                </p>
               </div>
             </div>
           </div>

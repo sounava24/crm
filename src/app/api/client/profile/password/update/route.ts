@@ -6,11 +6,12 @@ import {
   CLIENT_PASSWORD_CHANGE_PURPOSE,
   getAuthenticatedClientAdmin,
 } from "@/lib/client-password-otp";
+import { getStrongPasswordError, validateStrongPassword } from "@/lib/password-policy";
 
 const UpdatePasswordSchema = z.object({
   code: z.string().regex(/^\d{6}$/),
-  newPassword: z.string().min(8),
-  confirmPassword: z.string().min(8),
+  newPassword: z.string(),
+  confirmPassword: z.string(),
 });
 
 export async function POST(request: Request) {
@@ -24,12 +25,17 @@ export async function POST(request: Request) {
 
   if (!parsed.success) {
     return NextResponse.json(
-      { error: "Enter a 6-digit code and a password with at least 8 characters." },
+      { error: "Enter a 6-digit code and a valid new password." },
       { status: 400 }
     );
   }
 
   const { code, newPassword, confirmPassword } = parsed.data;
+  const passwordValidation = validateStrongPassword(newPassword);
+  if (!passwordValidation.valid) {
+    return NextResponse.json({ error: getStrongPasswordError(newPassword) }, { status: 400 });
+  }
+
   if (newPassword !== confirmPassword) {
     return NextResponse.json({ error: "New passwords do not match." }, { status: 400 });
   }

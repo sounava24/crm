@@ -6,13 +6,16 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { signOut } from "@/auth";
+import { getStrongPasswordError, validateStrongPassword } from "@/lib/password-policy";
 
 const ClientSchema = z.object({
   name: z.string().min(2),
   websiteUrl: z.string().url(),
   phoneNumber: z.string().optional(),
   adminEmail: z.string().email(),
-  adminPassword: z.string().min(6),
+  adminPassword: z.string().refine((password) => validateStrongPassword(password).valid, {
+    message: "Password does not meet the required strength policy.",
+  }),
 });
 
 export async function createClient(formData: FormData) {
@@ -178,8 +181,9 @@ export async function updateAdminPassword(
   if (!currentPassword || !newPassword || !confirmPassword) {
     return { success: false, error: "All fields are required." };
   }
-  if (newPassword.length < 6) {
-    return { success: false, error: "New password must be at least 6 characters." };
+  const passwordValidation = validateStrongPassword(newPassword);
+  if (!passwordValidation.valid) {
+    return { success: false, error: getStrongPasswordError(newPassword) };
   }
   if (newPassword !== confirmPassword) {
     return { success: false, error: "New passwords do not match." };

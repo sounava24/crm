@@ -3,6 +3,7 @@
 import { useState, useTransition, useRef } from "react";
 import { updateAdminPassword } from "@/lib/actions";
 import { Lock, Eye, EyeOff, CheckCircle2, AlertCircle, Save } from "lucide-react";
+import { PASSWORD_REQUIREMENTS, STRONG_PASSWORD_PATTERN, validateStrongPassword } from "@/lib/password-policy";
 
 interface AdminPasswordFormProps {
   adminId: string;
@@ -18,6 +19,8 @@ export default function AdminPasswordForm({
   const [showCurrent, setShowCurrent] = useState(false);
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const formRef = useRef<HTMLFormElement>(null);
 
   const accent =
@@ -40,9 +43,17 @@ export default function AdminPasswordForm({
       setResult(res);
       if (res.success) {
         formRef.current?.reset();
+        setNewPassword("");
+        setConfirmPassword("");
       }
     });
   }
+
+  const passwordErrors = newPassword ? validateStrongPassword(newPassword).errors : [];
+  const canSubmit =
+    validateStrongPassword(newPassword).valid &&
+    newPassword === confirmPassword &&
+    !isPending;
 
   return (
     <div className="glass-card rounded-3xl p-8">
@@ -88,8 +99,11 @@ export default function AdminPasswordForm({
               type={showNew ? "text" : "password"}
               name="newPassword"
               required
-              minLength={6}
-              placeholder="At least 6 characters"
+              minLength={8}
+              pattern={STRONG_PASSWORD_PATTERN}
+              value={newPassword}
+              onChange={(event) => setNewPassword(event.target.value)}
+              placeholder="At least 8 characters"
               className={`w-full bg-locked-panel-solid border border-locked-border rounded-xl px-4 py-3 pr-12 focus:outline-none focus:ring-2 ${focusRing} transition-all`}
             />
             <button
@@ -102,6 +116,18 @@ export default function AdminPasswordForm({
           </div>
         </div>
 
+        <div className="rounded-xl border border-locked-border bg-locked-panel-solid/50 p-4 text-sm text-locked-muted">
+          <p className="mb-2 font-semibold text-locked-text">Password requirements</p>
+          <ul className="space-y-1">
+            {PASSWORD_REQUIREMENTS.map((requirement) => (
+              <li key={requirement}>{requirement}</li>
+            ))}
+          </ul>
+          {passwordErrors.length > 0 && (
+            <p className="mt-3 text-red-300">{passwordErrors[0]}</p>
+          )}
+        </div>
+
         {/* Confirm Password */}
         <div className="space-y-2">
           <label className="text-sm font-bold text-locked-muted uppercase">
@@ -112,6 +138,10 @@ export default function AdminPasswordForm({
               type={showConfirm ? "text" : "password"}
               name="confirmPassword"
               required
+              minLength={8}
+              pattern={STRONG_PASSWORD_PATTERN}
+              value={confirmPassword}
+              onChange={(event) => setConfirmPassword(event.target.value)}
               placeholder="Repeat new password"
               className={`w-full bg-locked-panel-solid border border-locked-border rounded-xl px-4 py-3 pr-12 focus:outline-none focus:ring-2 ${focusRing} transition-all`}
             />
@@ -124,6 +154,10 @@ export default function AdminPasswordForm({
             </button>
           </div>
         </div>
+
+        {confirmPassword && newPassword !== confirmPassword && (
+          <p className="text-sm font-medium text-red-300">New passwords do not match.</p>
+        )}
 
         {/* Feedback */}
         {result && (
@@ -146,7 +180,7 @@ export default function AdminPasswordForm({
         <div className="pt-2 flex justify-end">
           <button
             type="submit"
-            disabled={isPending}
+            disabled={!canSubmit}
             className={`flex items-center gap-2 px-6 py-3 ${accent} text-white font-bold rounded-xl transition-all shadow-md focus:outline-none focus:ring-2 disabled:opacity-60 disabled:cursor-not-allowed`}
           >
             {isPending ? (
