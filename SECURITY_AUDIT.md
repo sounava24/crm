@@ -35,10 +35,10 @@ No critical app-code issue was confirmed in this pass. Do not interpret this as 
 ### High
 
 1. Dependency advisories include Next.js high-severity items.
-   - Evidence: `npm audit --audit-level=low` reports 7 vulnerabilities, including high-severity advisories for `next@16.2.3`.
+   - Evidence: initial `npm audit --audit-level=low` reported 7 vulnerabilities, including high-severity advisories for `next@16.2.3`.
    - Affected files: `package.json`, `package-lock.json`.
    - Recommendation: test upgrade to a patched Next.js version and compatible Prisma/tooling updates in a separate branch. Do not run `npm audit fix --force` blindly.
-   - Status: Pending.
+   - Status: Fixed in Phase 3. Upgraded safe patch/minor versions and added scoped overrides; `npm audit` now reports 0 vulnerabilities.
 
 2. Prisma migration history is incomplete for production.
    - Evidence: only `20260522120000_cashfree_billing` exists, and it alters `Client`/`Payment` without an initial migration that creates those tables. `npx prisma migrate status` reports this migration is not applied.
@@ -238,7 +238,8 @@ No critical app-code issue was confirmed in this pass. Do not interpret this as 
 - `npx prisma validate`: passed.
 - `npx prisma generate`: passed.
 - `npx prisma migrate status`: failed for production readiness; one migration exists and is not applied.
-- `npm audit --audit-level=low`: failed with advisories; 7 vulnerabilities reported.
+- Initial `npm audit --audit-level=low`: failed with advisories; 7 vulnerabilities reported.
+- Phase 3 `npm audit`: passed with 0 vulnerabilities.
 - `npm run lint`: failed on pre-existing lint debt in `src/app/dashboard/page.tsx`, `src/components/countdown-timer.tsx`, and a warning in `src/app/login/page.tsx`. The previous seed warning is fixed.
 - `npm run build`: passed.
 
@@ -251,3 +252,14 @@ No critical app-code issue was confirmed in this pass. Do not interpret this as 
 - `npm audit`: still reports 7 advisories; dependency upgrades are deferred to Phase 3.
 - `npm run lint`: still fails on unrelated existing lint debt in `src/app/dashboard/page.tsx` and `src/components/countdown-timer.tsx`, plus a warning in `src/app/login/page.tsx`.
 - Sensitive pattern scan found no app-code usage of `localStorage`/`sessionStorage` tokens, `NEXT_PUBLIC_*` secrets, raw Prisma SQL, unsafe HTML rendering, or the old seed password.
+
+## Phase 3 Dependency Verification
+
+- Upgraded `next` and `eslint-config-next` to `16.2.6`.
+- Upgraded Prisma packages to `7.8.0`.
+- Upgraded `whatsapp-web.js` to `1.34.7`.
+- Added scoped npm overrides for transitive `postcss`, `brace-expansion`, and `@hono/node-server` advisories.
+- `npm run build`: passed.
+- `npx prisma validate`: passed.
+- `npx prisma generate`: passed.
+- `npm audit`: passed with 0 vulnerabilities.

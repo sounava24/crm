@@ -8,6 +8,7 @@ Audit date: 2026-05-24
    - `npm audit` reports 7 advisories, including high-severity Next.js advisories.
    - Test patched `next`, `postcss`, `ws`, `brace-expansion`, and Prisma-related dependency updates.
    - Do not use `npm audit fix --force` directly on `main`.
+   - Status: Fixed in Phase 3 with safe package upgrades and scoped npm overrides. `npm audit` now reports 0 vulnerabilities.
 
 2. Replace production `AUTH_SECRET`.
    - Use a 32+ byte random secret.
