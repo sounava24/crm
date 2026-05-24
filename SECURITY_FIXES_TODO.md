@@ -51,10 +51,14 @@ Audit date: 2026-05-24
 2. Add production CSP.
    - Include exact allowlist for same-origin assets and Cashfree checkout script/frame/connect endpoints.
    - Test dashboard, login, payment, and invoice pages after CSP.
+   - Status: Phase 5 adds production `Content-Security-Policy-Report-Only` first, not enforcing CSP yet.
+   - Current report-only policy allows same-origin resources, Cashfree SDK `https://sdk.cashfree.com`, and Cashfree API/frame/form endpoints `https://api.cashfree.com` and `https://sandbox.cashfree.com`.
+   - Before enforcing CSP, test login, dashboard, portal, invoice print, Cashfree checkout, payment success, and Resend OTP pages in production/staging browser devtools.
 
 3. Enable HSTS at hosting/CDN layer.
    - Only after HTTPS is confirmed.
    - Suggested header: `Strict-Transport-Security: max-age=31536000; includeSubDomains`.
+   - Status: Phase 5 adds production HSTS from Next headers. Confirm HTTPS is always used at the hosting/CDN layer before deployment.
 
 4. Prefer cron secret in header only.
    - Query-string secrets are easy to leak in logs.

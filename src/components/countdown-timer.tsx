@@ -9,36 +9,34 @@ interface CountdownTimerProps {
   isDueSoon: boolean;
 }
 
+type TimeLeft = {
+  days: number;
+  hours: number;
+  minutes: number;
+  seconds: number;
+};
+
+function calculateTimeLeft(target: number): TimeLeft {
+  const now = new Date().getTime();
+  const distance = target - now;
+  const absoluteDistance = Math.abs(distance);
+
+  return {
+    days: Math.floor(absoluteDistance / (1000 * 60 * 60 * 24)),
+    hours: Math.floor((absoluteDistance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+    minutes: Math.floor((absoluteDistance % (1000 * 60 * 60)) / (1000 * 60)),
+    seconds: Math.floor((absoluteDistance % (1000 * 60)) / 1000),
+  };
+}
+
 export function CountdownTimer({ targetDate, isOverdue, isDueSoon }: CountdownTimerProps) {
-  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-  const [hasMounted, setHasMounted] = useState(false);
+  const [timeLeft, setTimeLeft] = useState<TimeLeft | null>(null);
 
   useEffect(() => {
-    setHasMounted(true);
     const target = new Date(targetDate).getTime();
 
     const updateTimer = () => {
-      const now = new Date().getTime();
-      const distance = target - now;
-
-      if (distance < 0) {
-        // Time has passed (Overdue)
-        const passedDistance = Math.abs(distance);
-        setTimeLeft({
-          days: Math.floor(passedDistance / (1000 * 60 * 60 * 24)),
-          hours: Math.floor((passedDistance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
-          minutes: Math.floor((passedDistance % (1000 * 60 * 60)) / (1000 * 60)),
-          seconds: Math.floor((passedDistance % (1000 * 60)) / 1000),
-        });
-      } else {
-        // Pending
-        setTimeLeft({
-          days: Math.floor(distance / (1000 * 60 * 60 * 24)),
-          hours: Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
-          minutes: Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)),
-          seconds: Math.floor((distance % (1000 * 60)) / 1000),
-        });
-      }
+      setTimeLeft(calculateTimeLeft(target));
     };
 
     updateTimer(); // Initial call
@@ -47,7 +45,7 @@ export function CountdownTimer({ targetDate, isOverdue, isDueSoon }: CountdownTi
     return () => clearInterval(intervalId);
   }, [targetDate]);
 
-  if (!hasMounted) {
+  if (!timeLeft) {
     return (
       <div className="flex flex-col gap-1 w-full animate-pulse">
         <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-locked-muted">

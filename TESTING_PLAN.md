@@ -131,7 +131,9 @@ This checklist covers manual and automated testing for authentication, authoriza
 - [ ] `Permissions-Policy` blocks camera, microphone, and geolocation.
 - [ ] `X-Frame-Options: DENY` or CSP `frame-ancestors` is present.
 - [ ] HSTS is enabled only after HTTPS is confirmed.
-- [ ] CSP is tested with Cashfree checkout script and frames.
+- [ ] CSP report-only header is present in production.
+- [ ] CSP report-only browser console violations are reviewed.
+- [ ] CSP is tested with Cashfree checkout script and frames before enforcement.
 - [ ] CSP does not break dashboard styles/scripts.
 - [ ] No wildcard CORS is present in production APIs.
 

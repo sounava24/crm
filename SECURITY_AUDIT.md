@@ -63,9 +63,9 @@ No critical app-code issue was confirmed in this pass. Do not interpret this as 
 
 2. Security headers are incomplete for production.
    - Affected file: `next.config.ts`.
-   - Current: basic non-CSP headers added.
+   - Current: basic security headers, production HSTS, and production CSP report-only header are added.
    - Recommendation: add HSTS at the hosting layer after HTTPS is confirmed. Add a tested CSP that allows only required sources, including Cashfree checkout script/frame/connect endpoints and same-origin assets.
-   - Status: Partially applied.
+   - Status: Partially applied. CSP is report-only until Cashfree checkout and dashboard pages are tested in staging/production.
 
 3. Cashfree webhook idempotency depends on updating a unique webhook event field.
    - Affected files: `src/app/api/payments/cashfree/webhook/route.ts`, `src/lib/payment-updates.ts`, `prisma/schema.prisma`.
@@ -263,3 +263,10 @@ No critical app-code issue was confirmed in this pass. Do not interpret this as 
 - `npx prisma validate`: passed.
 - `npx prisma generate`: passed.
 - `npm audit`: passed with 0 vulnerabilities.
+
+## Phase 5 Header Verification
+
+- Production `Strict-Transport-Security` is configured in `next.config.ts`.
+- Production `Content-Security-Policy-Report-Only` is configured, not enforced.
+- CSP report-only allowlist includes same-origin resources and Cashfree SDK/API/frame/form endpoints.
+- Enforced CSP remains pending until staging confirms Cashfree checkout, login, dashboard, portal, and invoice print views do not produce required-block violations.

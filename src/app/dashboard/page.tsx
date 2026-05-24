@@ -2,23 +2,28 @@ import { prisma } from "@/lib/prisma";
 import { format, differenceInDays } from "date-fns";
 import { ExternalLink, Shield, ShieldOff, Globe, Settings, PlusCircle, Trash2, CreditCard, MessageCircle, AlertTriangle, Clock } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { toggleClientStatus, deleteClient } from "@/lib/actions";
 import { CountdownTimer } from "@/components/countdown-timer";
 
 export const dynamic = "force-dynamic";
 
-export default async function DashboardPage() {
-  const clients = await prisma.client.findMany({
+async function getDashboardClients() {
+  return prisma.client.findMany({
     where: { id: { not: "system-client" } },
     orderBy: { createdAt: "desc" },
   });
+}
+
+export default async function DashboardPage() {
+  const clients = await getDashboardClients();
 
   const now = new Date();
-  const dueSoonClients = clients.filter((c: any) => {
+  const dueSoonClients = clients.filter((c) => {
     const days = differenceInDays(new Date(c.nextPaymentDate), now);
     return c.status === "active" && days >= 0 && days <= 5;
   });
-  const overdueActiveClients = clients.filter((c: any) => {
+  const overdueActiveClients = clients.filter((c) => {
     return c.status === "active" && new Date(c.nextPaymentDate) < now;
   });
 
@@ -35,7 +40,7 @@ export default async function DashboardPage() {
         <div className="flex items-center gap-3 text-sm flex-wrap justify-end">
           <div className="flex items-center gap-2 px-3 py-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-full border border-emerald-500/20">
             <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span>{clients.filter((c: any) => c.status === "active").length} Active</span>
+            <span>{clients.filter((c) => c.status === "active").length} Active</span>
           </div>
           {dueSoonClients.length > 0 && (
             <div className="flex items-center gap-2 px-3 py-1 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-full border border-amber-500/20">
@@ -51,7 +56,7 @@ export default async function DashboardPage() {
           )}
           <div className="flex items-center gap-2 px-3 py-1 bg-red-500/10 text-red-600 dark:text-red-400 rounded-full border border-red-500/20">
             <div className="w-2 h-2 rounded-full bg-red-500" />
-            <span>{clients.filter((c: any) => c.status === "suspended").length} Suspended</span>
+            <span>{clients.filter((c) => c.status === "suspended").length} Suspended</span>
           </div>
         </div>
       </div>
@@ -69,7 +74,7 @@ export default async function DashboardPage() {
                   🔥 {overdueActiveClients.length} client{overdueActiveClients.length > 1 ? "s are" : " is"} overdue but still active — auto-suspend pending.
                 </p>
                 <p className="text-xs text-orange-600/80 dark:text-orange-400/70 mt-1">
-                  {overdueActiveClients.map((c: any) => c.name).join(", ")}
+                  {overdueActiveClients.map((c) => c.name).join(", ")}
                 </p>
               </div>
             </div>
@@ -84,7 +89,7 @@ export default async function DashboardPage() {
                   ⚠️ {dueSoonClients.length} client{dueSoonClients.length > 1 ? "s have" : " has"} a payment due within 5 days.
                 </p>
                 <p className="text-xs text-amber-600/80 dark:text-amber-400/70 mt-1">
-                  {dueSoonClients.map((c: any) => `${c.name} (${differenceInDays(new Date(c.nextPaymentDate), now)}d left)`).join(", ")}
+                  {dueSoonClients.map((c) => `${c.name} (${differenceInDays(new Date(c.nextPaymentDate), now)}d left)`).join(", ")}
                 </p>
               </div>
             </div>
@@ -93,7 +98,7 @@ export default async function DashboardPage() {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {clients.map((client: any) => {
+        {clients.map((client) => {
           const nextPaymentDate = new Date(client.nextPaymentDate);
           const isOverdue = new Date() > nextPaymentDate;
           const daysUntilDue = differenceInDays(nextPaymentDate, new Date());
@@ -116,11 +121,13 @@ export default async function DashboardPage() {
             {/* Website Preview Placeholder */}
             <div className="aspect-video bg-locked-panel-solid relative flex items-center justify-center overflow-hidden">
                <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent z-10" />
-               <img 
+               <Image
                  src={`https://api.microlink.io/?url=${encodeURIComponent(client.websiteUrl)}&screenshot=true&embed=screenshot.url`}
                  alt={client.name}
                  className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                 loading="lazy"
+                 fill
+                 sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
+                 unoptimized
                />
                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20 backdrop-blur-[2px]">
                  <Globe className="text-white scale-[2]" />
