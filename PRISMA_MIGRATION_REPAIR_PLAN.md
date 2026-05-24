@@ -8,15 +8,18 @@ Scope: DM Stack Labs CRM Prisma/PostgreSQL migration history repair.
 
 - `npx prisma migrate status` reports:
   - Database: PostgreSQL `postgres`, schema `public`, host `db.prisma.io:5432`.
-  - One migration exists locally:
-    - `20260522120000_cashfree_billing`
-  - The migration has not been applied according to Prisma migrate.
-- The only local migration is an incremental migration that runs `ALTER TABLE "Client"` and `ALTER TABLE "Payment"`.
-- There is no local initial migration that creates:
+- Three migrations now exist locally:
+  - `20260522000000_initial_schema`
+  - `20260522120000_cashfree_billing`
+  - `20260524020000_security_indexes`
+- The configured database still does not have a Prisma migration ledger, so `npx prisma migrate status` will report these migrations as pending until a backup-first `migrate resolve` repair is performed.
+- `20260522000000_initial_schema` creates the original base tables required before the Cashfree billing migration:
   - `Client`
   - `Admin`
   - `Payment`
   - `OtpToken`
+- `20260522120000_cashfree_billing` applies billing/Cashfree fields to `Client` and `Payment`.
+- `20260524020000_security_indexes` adds non-destructive indexes for authorization, payment, and OTP lookup paths.
 
 ## Current Database State
 
@@ -206,8 +209,29 @@ Do not use it to hide a failed migration that has not actually been applied.
 - Running reset on any non-disposable database will delete data.
 - Keeping no migration baseline will keep fresh deployments and shadow database checks unreliable.
 
+## Repository Repair Already Completed
+
+The repository now contains a non-destructive migration sequence that can build a fresh database from empty:
+
+1. `20260522000000_initial_schema`
+2. `20260522120000_cashfree_billing`
+3. `20260524020000_security_indexes`
+
+This does not mutate the existing configured database. The existing database still requires migration ledger reconciliation before `migrate status` can become clean.
+
 ## Recommended Next Step
 
-Do not repair automatically yet.
+Do not repair the live database automatically yet.
 
 First decide whether the configured database is production-like and whether its data must be preserved. If yes, follow Safe Option B with a backup-first process and review the generated baseline SQL before running `migrate resolve`.
+
+For the currently inspected database, because the schema already contains the base tables and Cashfree/billing fields, the likely backup-first repair path is:
+
+```bash
+npx prisma migrate resolve --applied 20260522000000_initial_schema
+npx prisma migrate resolve --applied 20260522120000_cashfree_billing
+npx prisma migrate deploy
+npx prisma migrate status
+```
+
+This should mark the already-present base/Cashfree schema as applied, then apply only the non-destructive index migration. Run these commands only after a verified database backup and manual approval.

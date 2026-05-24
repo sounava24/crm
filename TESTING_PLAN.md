@@ -109,12 +109,18 @@ This checklist covers manual and automated testing for authentication, authoriza
 - [ ] Production-style `/api/status?domain=...` without headers returns 401.
 - [ ] `/api/status` with client `X-API-KEY` returns only minimal status fields.
 - [ ] `/api/status` with `X-Status-Api-Key` can perform controlled domain lookup.
+- [ ] Login credential endpoint returns 429 after repeated attempts.
+- [ ] OTP send endpoint returns 429 after repeated requests.
+- [ ] OTP update endpoint returns 429 after repeated verification attempts.
+- [ ] Cashfree order creation endpoints return 429 after repeated requests.
 
 ## G. Database Tests
 
 - [ ] `npx prisma validate` passes.
 - [ ] `npx prisma generate` passes.
 - [ ] `npx prisma migrate status` is clean.
+- [ ] Existing database migration ledger is repaired only after backup and approval.
+- [ ] Fresh empty database can apply migrations from initial schema through security indexes.
 - [ ] Fresh database migration deploy succeeds.
 - [ ] No missing columns at runtime.
 - [ ] Payment records are created with correct provider/method/status.

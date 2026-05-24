@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { checkRateLimit, getClientIp, rateLimitHeaders } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -11,6 +12,19 @@ export const revalidate = 0;
  * X-Status-Api-Key with STATUS_API_KEY for controlled operational checks.
  */
 export async function GET(req: NextRequest) {
+  const rateLimit = checkRateLimit({
+    key: `status:${getClientIp(req.headers)}`,
+    limit: 120,
+    windowMs: 15 * 60 * 1000,
+  });
+
+  if (!rateLimit.allowed) {
+    return NextResponse.json(
+      { error: "Too many status requests. Please try again later." },
+      { status: 429, headers: rateLimitHeaders(rateLimit.retryAfter) }
+    );
+  }
+
   const { searchParams } = new URL(req.url);
   const domain = searchParams.get("domain");
   const apiKey = req.headers.get("x-api-key");

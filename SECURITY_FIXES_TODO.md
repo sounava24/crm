@@ -20,6 +20,7 @@ Audit date: 2026-05-24
    - Reconcile the existing `20260522120000_cashfree_billing` migration.
    - Use `migrate resolve` only after confirming the real database state.
    - Do not run `migrate reset` without backup and explicit approval.
+   - Status: repository migrations now include an initial schema migration and security index migration. Existing database ledger repair is pending manual backup and approval.
 
 4. Harden `/api/status`.
    - Remove unauthenticated `domain` fallback in production.
@@ -73,6 +74,7 @@ Audit date: 2026-05-24
    - Login route.
    - Payment order creation.
    - Public status endpoint.
+   - Status: in-memory app-level rate limiting added. For multi-instance production, add Redis/edge/provider-level rate limiting.
 
 7. Convert status/provider fields to Prisma enums.
    - `Client.status`
@@ -88,6 +90,7 @@ Audit date: 2026-05-24
    - `Payment.createdAt`
    - `Payment.paidAt`
    - `OtpToken.email,userId,purpose,usedAt,createdAt`
+   - Status: schema annotations and migration added.
 
 9. Replace seed defaults.
    - Block `prisma/seed.ts` in production unless explicitly enabled.

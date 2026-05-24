@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireSuperAdmin } from "@/lib/authz";
 import { createCashfreeOrder, getCashfreeClientMode } from "@/lib/cashfree";
+import { checkRateLimit, getClientIp, rateLimitHeaders } from "@/lib/rate-limit";
 
 function getBaseUrl(request: Request) {
   const configured = process.env.CASHFREE_RETURN_URL;
@@ -15,6 +16,19 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ clientId: string }> }
 ) {
+  const ipLimit = checkRateLimit({
+    key: `admin-cashfree-order:${getClientIp(request.headers)}`,
+    limit: 40,
+    windowMs: 10 * 60 * 1000,
+  });
+
+  if (!ipLimit.allowed) {
+    return NextResponse.json(
+      { error: "Too many payment requests. Please try again later." },
+      { status: 429, headers: rateLimitHeaders(ipLimit.retryAfter) }
+    );
+  }
+
   const user = await requireSuperAdmin();
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

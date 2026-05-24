@@ -196,7 +196,7 @@ No critical app-code issue was confirmed in this pass. Do not interpret this as 
   - `Payment.createdAt`
   - `Payment.paidAt`
   - `OtpToken.email,userId,purpose,usedAt,createdAt`
-- Risk: migration history is incomplete and must be fixed before production deploys.
+- Status: schema annotations and non-destructive index migration were added. The live database still needs backup-first migration ledger repair before production deploys.
 
 ### Encryption Review
 
@@ -270,3 +270,10 @@ No critical app-code issue was confirmed in this pass. Do not interpret this as 
 - Production `Content-Security-Policy-Report-Only` is configured, not enforced.
 - CSP report-only allowlist includes same-origin resources and Cashfree SDK/API/frame/form endpoints.
 - Enforced CSP remains pending until staging confirms Cashfree checkout, login, dashboard, portal, and invoice print views do not produce required-block violations.
+
+## Production Readiness Follow-Up
+
+- Added app-level in-memory throttling for credential login, OTP send/update, Cashfree order creation, and `/api/status`.
+- Added Prisma index annotations and a non-destructive index migration.
+- Added a missing initial migration so fresh databases can be built from migration history.
+- Migration ledger repair remains pending manual backup and approval for the existing configured database.

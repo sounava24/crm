@@ -36,6 +36,8 @@ model Admin {
   password  String
   clientId  String
   client    Client @relation(fields: [clientId], references: [id])
+
+  @@index([clientId])
 }
 
 model Payment {
@@ -58,6 +60,11 @@ model Payment {
   createdAt                DateTime  @default(now())
   updatedAt                DateTime  @default(now()) @updatedAt
   client                   Client    @relation(fields: [clientId], references: [id])
+
+  @@index([clientId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([paidAt])
 }
 
 model OtpToken {
@@ -70,4 +77,10 @@ model OtpToken {
   usedAt    DateTime?
   attempts  Int      @default(0)
   createdAt DateTime @default(now())
+
+  @@index([email])
+  @@index([userId])
+  @@index([purpose])
+  @@index([usedAt])
+  @@index([createdAt])
 }

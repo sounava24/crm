@@ -7,6 +7,7 @@ import {
   getAuthenticatedClientAdmin,
 } from "@/lib/client-password-otp";
 import { getStrongPasswordError, validateStrongPassword } from "@/lib/password-policy";
+import { checkRateLimit, getClientIp, rateLimitHeaders } from "@/lib/rate-limit";
 
 const UpdatePasswordSchema = z.object({
   code: z.string().regex(/^\d{6}$/),
@@ -15,6 +16,19 @@ const UpdatePasswordSchema = z.object({
 });
 
 export async function POST(request: Request) {
+  const ipLimit = checkRateLimit({
+    key: `otp-update-ip:${getClientIp(request.headers)}`,
+    limit: 30,
+    windowMs: 10 * 60 * 1000,
+  });
+
+  if (!ipLimit.allowed) {
+    return NextResponse.json(
+      { error: "Too many verification attempts. Please try again later." },
+      { status: 429, headers: rateLimitHeaders(ipLimit.retryAfter) }
+    );
+  }
+
   const admin = await getAuthenticatedClientAdmin();
   if (!admin) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

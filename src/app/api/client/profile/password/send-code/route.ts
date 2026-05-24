@@ -10,11 +10,26 @@ import {
   OTP_EXPIRY_MINUTES,
   OTP_RESEND_COOLDOWN_SECONDS,
 } from "@/lib/client-password-otp";
+import { checkRateLimit, getClientIp, rateLimitHeaders } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 
-export async function POST() {
+export async function POST(request: Request) {
   try {
+    const ip = getClientIp(request.headers);
+    const ipLimit = checkRateLimit({
+      key: `otp-send-ip:${ip}`,
+      limit: 20,
+      windowMs: 15 * 60 * 1000,
+    });
+
+    if (!ipLimit.allowed) {
+      return NextResponse.json(
+        { error: "Too many verification code requests. Please try again later." },
+        { status: 429, headers: rateLimitHeaders(ipLimit.retryAfter) }
+      );
+    }
+
     const admin = await getAuthenticatedClientAdmin();
     if (!admin) {
       console.error("Password OTP send failed: authenticated client admin not found.");
