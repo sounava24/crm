@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { getNextRenewalDate, normalizePaymentStatus } from "@/lib/billing";
+import { mapCashfreeStatus } from "@/lib/cashfree";
 import { Prisma } from "@prisma/client";
 
 type ProviderPayload = Prisma.InputJsonObject;
@@ -50,7 +51,9 @@ export async function updateCashfreePaymentFromStatus({
   rawProviderStatus?: ProviderPayload;
 }) {
   const mappedStatus =
-    orderStatus === "PAID" ? "PAID" : normalizePaymentStatus(paymentStatus || orderStatus);
+    mapCashfreeStatus(paymentStatus) === "PAID"
+      ? "PAID"
+      : mapCashfreeStatus(orderStatus || paymentStatus);
 
   return prisma.$transaction(async (tx) => {
     const payment = await tx.payment.findFirst({
@@ -64,8 +67,12 @@ export async function updateCashfreePaymentFromStatus({
       return null;
     }
 
+    if (payment.status === "PAID") {
+      return payment;
+    }
+
     const data: Prisma.PaymentUpdateInput = {
-      status: mappedStatus,
+      status: normalizePaymentStatus(mappedStatus),
       cashfreePaymentId: cashfreePaymentId || payment.cashfreePaymentId,
       cashfreeReferenceId: referenceId || payment.cashfreeReferenceId,
       cashfreeWebhookEventId: webhookEventId || payment.cashfreeWebhookEventId,

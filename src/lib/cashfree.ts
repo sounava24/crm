@@ -33,6 +33,28 @@ export function getCashfreeClientMode() {
   return getCashfreeEnvironment();
 }
 
+export function withCashfreeOrderIdReturnParam(returnUrl: string) {
+  if (/[?&](order_id|orderId|cf_order_id)=/.test(returnUrl) || returnUrl.includes("{order_id}")) {
+    return returnUrl;
+  }
+
+  const separator = returnUrl.includes("?") ? "&" : "?";
+  return `${returnUrl}${separator}order_id={order_id}`;
+}
+
+export function mapCashfreeStatus(status: string | null | undefined) {
+  const normalized = String(status || "").toUpperCase();
+
+  if (["PAID", "SUCCESS", "COMPLETED"].includes(normalized)) return "PAID";
+  if (["PENDING", "ACTIVE", "CREATED"].includes(normalized)) return "PENDING";
+  if (normalized === "FAILED") return "FAILED";
+  if (["CANCELLED", "EXPIRED", "TERMINATED", "USER_DROPPED"].includes(normalized)) {
+    return "CANCELLED";
+  }
+
+  return "PENDING";
+}
+
 function getCashfreeCredentials() {
   const clientId = process.env.CASHFREE_CLIENT_ID;
   const clientSecret = process.env.CASHFREE_CLIENT_SECRET;

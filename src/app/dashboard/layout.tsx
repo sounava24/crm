@@ -109,11 +109,11 @@ function Sidebar({
     <aside
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
-      className={`${sidebarWidth} glass-card fixed bottom-0 top-16 z-40 flex w-64 -translate-x-full flex-col border-r border-locked-border transition-[transform,width] duration-300 ease-in-out md:static md:translate-x-0 ${
+      className={`${sidebarWidth} glass-card fixed bottom-0 top-16 z-40 flex w-64 -translate-x-full flex-col border-r border-locked-border transition-[transform,width] duration-500 ease-in-out md:static md:translate-x-0 ${
         mobileOpen ? "translate-x-0" : ""
       }`}
     >
-      <div className={`${collapsed ? "p-6 md:p-4" : "p-6"} flex min-h-0 flex-1 flex-col transition-all duration-300`}>
+      <div className={`${collapsed ? "p-6 md:p-4" : "p-6"} flex min-h-0 flex-1 flex-col transition-all duration-500 ease-in-out`}>
         <nav className="space-y-2 pt-2">
           <SidebarItem
             icon={<LayoutDashboard size={20} />}
@@ -156,13 +156,13 @@ function Sidebar({
             href="/dashboard/clients/add"
             title="Add Client"
             onClick={onNavigate}
-            className={`flex items-center gap-2 w-full py-3 bg-gradient-to-r from-brand-blue to-brand-gradient-end hover:from-brand-gradient-end hover:to-brand-blue text-white rounded-xl transition-all shadow-md ${
+            className={`flex items-center gap-2 w-full py-3 bg-gradient-to-r from-brand-blue to-brand-gradient-end hover:from-brand-gradient-end hover:to-brand-blue text-white rounded-xl transition-all duration-500 ease-in-out shadow-md ${
               collapsed ? "md:justify-center md:px-0 px-4" : "px-4"
             }`}
           >
             <PlusCircle size={20} className="shrink-0" />
-            <span className={`font-semibold overflow-hidden whitespace-nowrap transition-all duration-300 ${
-              collapsed ? "md:w-0 md:opacity-0" : "w-auto opacity-100"
+            <span className={`font-semibold overflow-hidden whitespace-nowrap transition-[width,opacity,transform] duration-500 ease-in-out ${
+              collapsed ? "md:w-0 md:opacity-0 md:-translate-x-2" : "w-auto opacity-100 translate-x-0"
             }`}>
               Add Client
             </span>
@@ -193,7 +193,7 @@ function SidebarItem({
       href={href}
       title={label}
       onClick={onNavigate}
-      className={`flex items-center gap-3 rounded-xl px-4 py-3 text-locked-muted transition-all group hover:bg-locked-panel-solid/70 hover:text-brand-gradient-end ${
+      className={`flex items-center gap-3 rounded-xl px-4 py-3 text-locked-muted transition-all duration-500 ease-in-out group hover:bg-locked-panel-solid/70 hover:text-brand-gradient-end ${
         collapsed ? "md:justify-center md:px-0" : ""
       } ${
         active
@@ -201,9 +201,9 @@ function SidebarItem({
           : ""
       }`}
     >
-      <span className="shrink-0 group-hover:scale-110 transition-transform">{icon}</span>
-      <span className={`font-medium overflow-hidden whitespace-nowrap transition-all duration-300 ${
-        collapsed ? "md:w-0 md:opacity-0" : "w-auto opacity-100"
+      <span className="shrink-0 transition-transform duration-500 ease-in-out group-hover:scale-110">{icon}</span>
+      <span className={`font-medium overflow-hidden whitespace-nowrap transition-[width,opacity,transform] duration-500 ease-in-out ${
+        collapsed ? "md:w-0 md:opacity-0 md:-translate-x-2" : "w-auto opacity-100 translate-x-0"
       }`}>
         {label}
       </span>

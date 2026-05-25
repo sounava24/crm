@@ -2,6 +2,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { User } from "lucide-react";
+import { AdminPasswordOtpForm } from "@/components/admin-password-otp-form";
 
 export const dynamic = "force-dynamic";
 
@@ -48,6 +49,8 @@ export default async function SettingsPage() {
           </div>
         </div>
       </div>
+
+      <AdminPasswordOtpForm email={admin.email} />
     </div>
   );
 }

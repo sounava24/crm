@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { CheckCircle2, Loader2, XCircle } from "lucide-react";
+import { CheckCircle2, Clock3, Loader2, XCircle } from "lucide-react";
 
 type VerifyState = {
-  status: "verifying" | "success" | "failed";
+  status: "verifying" | "success" | "pending" | "failed" | "unverified";
   message: string;
 };
 
@@ -17,14 +17,22 @@ export function VerifyPaymentClient({ orderId }: { orderId?: string }) {
 
   useEffect(() => {
     if (!orderId) {
-      setState({ status: "failed", message: "Missing Cashfree order ID." });
+      setState({
+        status: "unverified",
+        message: "Unable to verify payment because the Cashfree order ID was not found.",
+      });
       return;
     }
 
     const verifiedOrderId = orderId;
     let active = true;
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+    let attempts = 0;
+    const maxAttempts = 10;
 
     async function verify() {
+      attempts += 1;
+
       try {
         const response = await fetch(
           `/api/client/payments/verify?orderId=${encodeURIComponent(verifiedOrderId)}`
@@ -42,10 +50,27 @@ export function VerifyPaymentClient({ orderId }: { orderId?: string }) {
             status: "success",
             message: "Payment confirmed. Your billing status has been updated.",
           });
+        } else if (data.status === "PENDING" || data.status === "CREATED") {
+          const canRetry = attempts < maxAttempts;
+          setState({
+            status: canRetry ? "verifying" : "pending",
+            message: canRetry
+              ? "Payment is being verified. This can take a few moments after Cashfree redirects back."
+              : "Payment is still pending verification. Please check your dashboard again shortly.",
+          });
+
+          if (canRetry) {
+            timeoutId = setTimeout(verify, 3000);
+          }
+        } else if (data.status === "CANCELLED") {
+          setState({
+            status: "failed",
+            message: "Payment was cancelled before completion.",
+          });
         } else {
           setState({
             status: "failed",
-            message: `Payment status is ${data.status || "pending"}. Please check again later.`,
+            message: `Payment status is ${data.status || "failed"}. Please check again later.`,
           });
         }
       } catch (err) {
@@ -61,11 +86,13 @@ export function VerifyPaymentClient({ orderId }: { orderId?: string }) {
 
     return () => {
       active = false;
+      if (timeoutId) clearTimeout(timeoutId);
     };
   }, [orderId]);
 
   const isSuccess = state.status === "success";
   const isVerifying = state.status === "verifying";
+  const isPending = state.status === "pending";
 
   return (
     <div className="min-h-screen bg-locked-bg flex items-center justify-center p-4">
@@ -73,6 +100,8 @@ export function VerifyPaymentClient({ orderId }: { orderId?: string }) {
         <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl border border-brand-blue/20 bg-brand-blue/10 text-brand-blue">
           {isVerifying ? (
             <Loader2 size={32} className="animate-spin" />
+          ) : isPending ? (
+            <Clock3 size={32} />
           ) : isSuccess ? (
             <CheckCircle2 size={32} />
           ) : (
@@ -80,7 +109,13 @@ export function VerifyPaymentClient({ orderId }: { orderId?: string }) {
           )}
         </div>
         <h1 className="text-2xl font-black text-locked-text">
-          {isVerifying ? "Verifying Payment" : isSuccess ? "Payment Successful" : "Payment Not Confirmed"}
+          {isVerifying
+            ? "Verifying Payment"
+            : isSuccess
+              ? "Payment Successful"
+              : isPending
+                ? "Payment Pending"
+                : "Payment Not Confirmed"}
         </h1>
         <p className="mt-3 text-sm leading-relaxed text-locked-muted">{state.message}</p>
         <Link

@@ -3,12 +3,13 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { Lock, Mail, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Lock, Mail, Loader2 } from "lucide-react";
 import { BrandLogo } from "@/components/brand-logo";
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -83,11 +84,20 @@ export default function LoginPage() {
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-locked-muted/80" size={18} />
                 <input
                   name="password"
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   required
                   placeholder="••••••••"
-                  className="w-full pl-10 pr-4 py-2 bg-locked-panel-solid/70 border border-locked-border rounded-lg focus:ring-2 focus:ring-brand-blue outline-none transition-all"
+                  className="w-full pl-10 pr-11 py-2 bg-locked-panel-solid/70 border border-locked-border rounded-lg focus:ring-2 focus:ring-brand-blue outline-none transition-all"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((visible) => !visible)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  title={showPassword ? "Hide password" : "Show password"}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-locked-muted/80 transition-colors hover:text-locked-muted focus:outline-none focus:ring-2 focus:ring-brand-blue rounded-md"
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
               </div>
             </div>
 

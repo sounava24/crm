@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireClientUser } from "@/lib/authz";
-import { createCashfreeOrder, getCashfreeClientMode } from "@/lib/cashfree";
+import {
+  createCashfreeOrder,
+  getCashfreeClientMode,
+  withCashfreeOrderIdReturnParam,
+} from "@/lib/cashfree";
 import { checkRateLimit, getClientIp, rateLimitHeaders } from "@/lib/rate-limit";
 
 function getBaseUrl(request: Request) {
@@ -81,8 +85,9 @@ export async function POST(request: Request) {
 
   const orderId = localPayment.id;
   const baseUrl = getBaseUrl(request);
-  const returnUrl =
-    process.env.CASHFREE_RETURN_URL || `${baseUrl}/payment-success?order_id={order_id}`;
+  const returnUrl = withCashfreeOrderIdReturnParam(
+    process.env.CASHFREE_RETURN_URL || `${baseUrl}/payment-success`
+  );
   const notifyUrl = `${baseUrl}/api/payments/cashfree/webhook`;
   const adminEmail = user.email || client.admins[0]?.email || undefined;
 
